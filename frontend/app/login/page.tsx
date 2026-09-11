@@ -8,9 +8,11 @@ import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
 import { loginOfficial } from "../../lib/api";
 import { setToken } from "../../lib/auth";
+import { useTranslation } from "../../context/LanguageContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +22,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim() || !password.trim()) {
-      setErrorMessage("Please enter your official email or employee ID and password.");
+      setErrorMessage(t("loginPage.errorRequired") || "Please enter your official email or employee ID and password.");
       return;
     }
 
@@ -68,10 +70,10 @@ export default function LoginPage() {
                 <Shield className="h-7 w-7 text-[#F39A32]" />
               </div>
               <h1 className="text-2xl font-black text-[#123B5D] tracking-tight">
-                Official Portal Access
+                {t("loginPage.title")}
               </h1>
               <p className="text-xs text-[#667085] mt-1 font-medium">
-                Pune Municipal Corporation • Grievance Administration & Officer Login
+                {t("loginPage.subtitle")}
               </p>
             </div>
 
@@ -86,7 +88,7 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] block mb-1">
-                  Employee ID / Official Email
+                  {t("loginPage.identifierLabel")}
                 </label>
                 <div className="relative">
                   <Mail className="h-4 w-4 text-[#667085] absolute left-3 top-3.5" />
@@ -95,7 +97,7 @@ export default function LoginPage() {
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="e.g. admin@jansetu.local or PMC-ENG-101"
+                    placeholder={t("loginPage.identifierPlaceholder")}
                     className="w-full rounded-xl border border-[#E9E9E9] pl-9 pr-3 py-2.5 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] font-medium bg-white"
                   />
                 </div>
@@ -103,7 +105,7 @@ export default function LoginPage() {
 
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] block mb-1">
-                  Password
+                  {t("loginPage.passwordLabel")}
                 </label>
                 <div className="relative">
                   <Lock className="h-4 w-4 text-[#667085] absolute left-3 top-3.5" />
@@ -112,7 +114,7 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t("loginPage.passwordPlaceholder")}
                     className="w-full rounded-xl border border-[#E9E9E9] pl-9 pr-3 py-2.5 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] bg-white"
                   />
                 </div>
@@ -125,7 +127,7 @@ export default function LoginPage() {
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-4 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95"
                 >
                   <Shield className="h-4 w-4 text-[#F39A32]" />
-                  <span>{isLoading ? "Authenticating Official..." : "Sign In to Official Portal"}</span>
+                  <span>{isLoading ? t("loginPage.authenticating") : t("loginPage.signInButton")}</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -135,10 +137,10 @@ export default function LoginPage() {
             <div className="mt-8 pt-6 border-t border-[#E9E9E9]">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[10px] font-bold text-[#667085] uppercase tracking-wider">
-                  Test / Demo Official Accounts
+                  {t("loginPage.demoAccountsTitle")}
                 </span>
                 <span className="text-[10px] text-[#1F5E91] font-bold bg-[#1F5E91]/10 px-2 py-0.5 rounded border border-[#1F5E91]/20">
-                  Click to pre-fill
+                  {t("loginPage.clickToPrefill")}
                 </span>
               </div>
 
@@ -148,7 +150,7 @@ export default function LoginPage() {
                   onClick={() => fillDemoAccount("admin@jansetu.local", "admin123")}
                   className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
                 >
-                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">Municipal Admin</span>
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">{t("loginPage.roleAdmin")}</span>
                   <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">admin@jansetu.local</span>
                 </button>
 
@@ -157,7 +159,7 @@ export default function LoginPage() {
                   onClick={() => fillDemoAccount("water.officer@jansetu.local", "officer123")}
                   className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
                 >
-                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">Water Officer</span>
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">{t("loginPage.roleWater")}</span>
                   <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">water.officer@jansetu.local</span>
                 </button>
 
@@ -166,7 +168,7 @@ export default function LoginPage() {
                   onClick={() => fillDemoAccount("road.officer@jansetu.local", "officer123")}
                   className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
                 >
-                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">Road Officer</span>
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">{t("loginPage.roleRoad")}</span>
                   <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">road.officer@jansetu.local</span>
                 </button>
 
@@ -175,7 +177,7 @@ export default function LoginPage() {
                   onClick={() => fillDemoAccount("collector@jansetu.local", "collector123")}
                   className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
                 >
-                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">District Collector</span>
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">{t("loginPage.roleCollector")}</span>
                   <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">collector@jansetu.local</span>
                 </button>
               </div>
@@ -184,7 +186,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-xs text-[#667085]">
             <Link href="/" className="hover:text-[#1F5E91] font-semibold underline">
-              Return to Citizen Portal Home
+              {t("loginPage.returnHome")}
             </Link>
           </div>
         </div>

@@ -14,19 +14,20 @@ import {
   ChevronDown,
   Lock,
 } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const PublicNavbar: React.FC = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState("English");
   const [fontSize, setFontSize] = useState<"normal" | "large" | "small">("normal");
+  const { t, languageName, setLanguage } = useTranslation();
 
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "How It Works", href: "/how-it-works" },
-    { name: "Report Issue", href: "/report" },
-    { name: "Track Complaint", href: "/track" },
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.about"), href: "/about" },
+    { name: t("nav.howItWorks"), href: "/how-it-works" },
+    { name: t("nav.reportIssue"), href: "/report" },
+    { name: t("nav.trackComplaint"), href: "/track" },
   ];
 
   return (
@@ -41,12 +42,12 @@ export const PublicNavbar: React.FC = () => {
           <div className="flex items-center gap-3">
             <span className="font-semibold text-white/95 flex items-center gap-1.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#F39A32]" />
-              Government of Maharashtra
+              {t("nav.govName")}
             </span>
             <span className="text-white/40">|</span>
-            <span className="text-white/80">Pune Municipal Corporation (PMC)</span>
+            <span className="text-white/80">{t("nav.pmcName")}</span>
             <span className="text-white/40">|</span>
-            <span className="text-[#F39A32] font-semibold">Civic Grievance Redressal</span>
+            <span className="text-[#F39A32] font-semibold">{t("nav.portalTag")}</span>
           </div>
 
           {/* Right: Helpline & Accessibility Controls */}
@@ -54,14 +55,14 @@ export const PublicNavbar: React.FC = () => {
             {/* Citizen Helpline */}
             <div className="flex items-center gap-1.5 text-white/90">
               <Phone className="h-3 w-3 text-[#F39A32]" />
-              <span>Toll Free: <strong className="text-white font-bold">1800-1030-222</strong></span>
+              <span>{t("nav.helpline")} <strong className="text-white font-bold">{t("nav.helplineNumber")}</strong></span>
             </div>
 
             <span className="text-white/30">|</span>
 
             {/* Accessibility Font Size Toggle */}
             <div className="flex items-center gap-1 text-[10px] text-white/80">
-              <span>Text:</span>
+              <span>{t("nav.textSize")}</span>
               <button
                 onClick={() => setFontSize("small")}
                 className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 ${
@@ -97,8 +98,8 @@ export const PublicNavbar: React.FC = () => {
             <div className="flex items-center gap-1 text-white/90">
               <Globe className="h-3 w-3 text-[#F39A32]" />
               <select
-                value={selectedLang}
-                onChange={(e) => setSelectedLang(e.target.value)}
+                value={languageName}
+                onChange={(e) => setLanguage(e.target.value)}
                 className="bg-white/10 text-white text-[11px] rounded px-1.5 py-0.5 outline-none border border-white/20 cursor-pointer font-medium"
               >
                 <option value="English" className="bg-[#123B5D] text-white">English</option>
@@ -124,11 +125,11 @@ export const PublicNavbar: React.FC = () => {
                   JanSetu <span className="text-[#F39A32]">AI</span>
                 </span>
                 <span className="hidden sm:inline-block rounded-md bg-[#1F5E91]/10 px-2 py-0.5 text-[10px] font-extrabold text-[#1F5E91] border border-[#1F5E91]/20 uppercase tracking-wide">
-                  PMC Portal
+                  {t("nav.pmcPortalBadge")}
                 </span>
               </div>
               <p className="text-[11px] text-[#667085] font-semibold tracking-tight">
-                AI-Powered Citizen Service Platform
+                {t("nav.tagline")}
               </p>
             </div>
           </Link>
@@ -160,7 +161,7 @@ export const PublicNavbar: React.FC = () => {
               className="flex items-center gap-2 rounded-lg bg-[#1F5E91] hover:bg-[#123B5D] text-white px-4 py-2.5 text-xs font-bold shadow-md hover:shadow-lg transition-all border border-[#1F5E91] active:scale-[0.98]"
             >
               <Lock className="h-3.5 w-3.5 text-[#F39A32]" />
-              <span>Login / Register</span>
+              <span>{t("nav.loginRegister")}</span>
             </Link>
           </div>
 
@@ -171,7 +172,7 @@ export const PublicNavbar: React.FC = () => {
               className="flex items-center gap-1 rounded-md bg-[#1F5E91] px-2.5 py-1.5 text-xs font-bold text-white"
             >
               <Lock className="h-3 w-3 text-[#F39A32]" />
-              <span>Login</span>
+              <span>{t("nav.loginRegister").split("/")[0].trim()}</span>
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -207,10 +208,10 @@ export const PublicNavbar: React.FC = () => {
 
           <div className="pt-3 mt-2 border-t border-[#E9E9E9] space-y-2">
             <div className="flex items-center justify-between text-xs text-[#667085] px-1">
-              <span>Preferred Language:</span>
+              <span>{t("nav.preferredLang")}</span>
               <select
-                value={selectedLang}
-                onChange={(e) => setSelectedLang(e.target.value)}
+                value={languageName}
+                onChange={(e) => setSelectedLangFromSelect(e.target.value)}
                 className="bg-[#F5F4F0] text-[#1F2933] px-2 py-1 rounded border border-[#E9E9E9] text-xs font-semibold"
               >
                 <option value="English">English</option>
@@ -220,14 +221,18 @@ export const PublicNavbar: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between text-xs text-[#667085] px-1">
-              <span>Citizen Helpline:</span>
-              <span className="font-bold text-[#1F5E91]">1800-1030-222</span>
+              <span>{t("nav.citizenHelpline")}</span>
+              <span className="font-bold text-[#1F5E91]">{t("nav.helplineNumber")}</span>
             </div>
           </div>
         </div>
       )}
     </header>
   );
+
+  function setSelectedLangFromSelect(val: string) {
+    setLanguage(val);
+  }
 };
 
 export default PublicNavbar;

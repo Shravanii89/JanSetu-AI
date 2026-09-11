@@ -3,13 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, ChevronLeft, ChevronRight, Bell, ArrowRight } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const AnnouncementBar: React.FC = () => {
+  const { t } = useTranslation();
+
   const announcements = [
-    "Report civic issues faster with AI-powered complaint classification and smart routing.",
-    "Pune Municipal Corporation introduces 24x7 automated SLA tracking across all 8 operational departments.",
-    "Submit complaints in Marathi, Hindi, or English — JanSetu AI automatically extracts issue and landmark details.",
-    "Emergency P0 hazards (live wires, main pipeline bursts) are escalated within 15 minutes with high priority dispatch.",
+    t("announcements.item1"),
+    t("announcements.item2"),
+    t("announcements.item3"),
+    t("announcements.item4"),
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -37,7 +40,7 @@ export const AnnouncementBar: React.FC = () => {
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-1.5 rounded-lg bg-[#F39A32] text-[#123B5D] px-3 py-1.5 text-xs font-black uppercase tracking-wider shadow-sm">
               <Sparkles className="h-3.5 w-3.5 fill-[#123B5D]" />
-              <span>WHAT&apos;S NEW</span>
+              <span>{t("announcements.badge")}</span>
             </div>
           </div>
 
@@ -87,7 +90,7 @@ export const AnnouncementBar: React.FC = () => {
               href="/about"
               className="inline-flex items-center gap-1 rounded-lg border border-[#1F5E91] bg-white hover:bg-[#1F5E91] text-[#1F5E91] hover:text-white px-3 py-1 text-xs font-bold transition-colors"
             >
-              <span>View More</span>
+              <span>{t("announcements.viewMore")}</span>
               <ArrowRight className="h-3 w-3" />
             </Link>
           </div>

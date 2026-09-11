@@ -18,77 +18,80 @@ import {
 } from "lucide-react";
 import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
+import { useTranslation } from "../../context/LanguageContext";
 
 export default function HowItWorksPage() {
+  const { t } = useTranslation();
+
   const steps = [
     {
       num: "01",
-      title: "Citizen Ingestion & Natural Voice",
-      desc: "Citizens submit grievances in everyday colloquial language (English, Hindi, Marathi, Hinglish). No prior knowledge of government department jargon is required.",
+      title: t("howItWorksPage.step1Title"),
+      desc: t("howItWorksPage.step1Desc"),
       points: [
-        "Multilingual input processing",
-        "Preserves raw citizen statement verbatim",
-        "Generates immutable tracking ID (JS-2026-PUN-XXXXX)",
+        t("howItWorksPage.step1p1"),
+        t("howItWorksPage.step1p2"),
+        t("howItWorksPage.step1p3"),
       ],
     },
     {
       num: "02",
-      title: "AI Extraction & Entity Triage",
-      desc: "Gemini API with local deterministic rule fallbacks extracts complaint category, Pune locality, outage duration, and severity markers inside sandboxed prompts.",
+      title: t("howItWorksPage.step2Title"),
+      desc: t("howItWorksPage.step2Desc"),
       points: [
-        "Prompt injection defense via <citizen_text> sandboxing",
-        "Deterministic local fallback when API key is unconfigured",
-        "Entity confidence scoring (KNOWN / INFERRED / MISSING)",
+        t("howItWorksPage.step2p1"),
+        t("howItWorksPage.step2p2"),
+        t("howItWorksPage.step2p3"),
       ],
     },
     {
       num: "03",
-      title: "Missing Information Detection",
-      desc: "If crucial location details are absent, the system identifies the gap and triggers an intelligent clarification prompt rather than silently dropping or misrouting the grievance.",
+      title: t("howItWorksPage.step3Title"),
+      desc: t("howItWorksPage.step3Desc"),
       points: [
-        "Automatic generation of targeted clarification questions",
-        "Temporary SLA pause while awaiting citizen response",
-        "P0 emergency safety bypass: hazards never blocked by missing metadata",
+        t("howItWorksPage.step3p1"),
+        t("howItWorksPage.step3p2"),
+        t("howItWorksPage.step3p3"),
       ],
     },
     {
       num: "04",
-      title: "Controlled Department Routing",
-      desc: "The ticket is routed strictly to one of the 8 authorized PMC operational departments. AI recommendations are validated against controlled taxonomy with zero hallucination.",
+      title: t("howItWorksPage.step4Title"),
+      desc: t("howItWorksPage.step4Desc"),
       points: [
-        "Strict 8-department boundary (Water, Road, Electricity, etc.)",
-        "Unambiguous mapping with fallback to OTHER_HUMAN_REVIEW",
-        "Server-side RBAC isolation ensuring departmental privacy",
+        t("howItWorksPage.step4p1"),
+        t("howItWorksPage.step4p2"),
+        t("howItWorksPage.step4p3"),
       ],
     },
     {
       num: "05",
-      title: "Deterministic Priority & SLA Allocation",
-      desc: "Priority (P0, P1, P2, P3) is derived deterministically from hazard patterns and service disruption duration, strictly decoupled from citizen sentiment.",
+      title: t("howItWorksPage.step5Title"),
+      desc: t("howItWorksPage.step5Desc"),
       points: [
-        "P0 Critical: 15 min response, 4h resolution target",
-        "P1 High: 2h response, 24h resolution target",
-        "Automatic SLA breach countdown and warning triggers",
+        t("howItWorksPage.step5p1"),
+        t("howItWorksPage.step5p2"),
+        t("howItWorksPage.step5p3"),
       ],
     },
     {
       num: "06",
-      title: "Field Officer Dispatch & Execution",
-      desc: "Department engineers inspect AI-recommended standard operating procedures (SOPs), execute maintenance repairs, and upload resolution verification notes.",
+      title: t("howItWorksPage.step6Title"),
+      desc: t("howItWorksPage.step6Desc"),
       points: [
-        "Department-isolated operational work queue",
-        "Regulatory audit logging for all status changes",
-        "Officer escalation controls to Commissioner or Collector",
+        t("howItWorksPage.step6p1"),
+        t("howItWorksPage.step6p2"),
+        t("howItWorksPage.step6p3"),
       ],
     },
     {
       num: "07",
-      title: "Verified Resolution & Citizen Transparency",
-      desc: "The ticket status moves to RESOLVED, the SLA clock halts, and the citizen receives a transparent verified resolution report on the public tracking portal.",
+      title: t("howItWorksPage.step7Title"),
+      desc: t("howItWorksPage.step7Desc"),
       points: [
-        "Full progress timeline accessible without login",
-        "Resolution notes and timestamped proof",
-        "Re-opening option if citizen remains dissatisfied",
+        t("howItWorksPage.step7p1"),
+        t("howItWorksPage.step7p2"),
+        t("howItWorksPage.step7p3"),
       ],
     },
   ];
@@ -101,15 +104,15 @@ export default function HowItWorksPage() {
       <div className="bg-white border-b border-[#E9E9E9] py-4">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-[#667085]">
-            <Link href="/" className="hover:text-[#1F5E91]">Home</Link>
+            <Link href="/" className="hover:text-[#1F5E91]">{t("howItWorksPage.breadcrumbHome")}</Link>
             <span>/</span>
-            <span className="font-bold text-[#1F2933]">Portal Architecture</span>
+            <span className="font-bold text-[#1F2933]">{t("howItWorksPage.breadcrumbSection")}</span>
             <span>/</span>
-            <span className="font-bold text-[#1F5E91]">How It Works</span>
+            <span className="font-bold text-[#1F5E91]">{t("howItWorksPage.breadcrumbCurrent")}</span>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#123B5D]">
             <Shield className="h-4 w-4 text-[#F39A32]" />
-            <span>PMC Operational SLA Standard</span>
+            <span>{t("howItWorksPage.slaStandard")}</span>
           </div>
         </div>
       </div>
@@ -118,13 +121,13 @@ export default function HowItWorksPage() {
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#1F5E91]/20 bg-white px-3.5 py-1 text-xs font-bold text-[#1F5E91] mb-4 shadow-sm">
             <Cpu className="h-3.5 w-3.5 text-[#F39A32]" />
-            <span>End-to-End Governance Pipeline</span>
+            <span>{t("howItWorksPage.pipelineBadge")}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-[#123B5D] tracking-tight">
-            How JanSetu AI Works
+            {t("howItWorksPage.title")}
           </h1>
           <p className="mt-3 text-sm sm:text-base text-[#667085] leading-relaxed">
-            From unstructured citizen voice to verified municipal resolution — explore the 7-step autonomous civic grievance pipeline built for Pune Municipal Corporation.
+            {t("howItWorksPage.subtitle")}
           </p>
         </div>
 
@@ -161,22 +164,22 @@ export default function HowItWorksPage() {
 
         {/* Bottom CTA Banner */}
         <div className="rounded-2xl bg-[#123B5D] text-white p-8 sm:p-10 text-center space-y-4 shadow-xl border-t-4 border-[#F39A32]">
-          <h2 className="text-2xl font-black text-white">Experience JanSetu AI Live</h2>
+          <h2 className="text-2xl font-black text-white">{t("howItWorksPage.ctaTitle")}</h2>
           <p className="text-xs sm:text-sm text-white/80 max-w-lg mx-auto leading-relaxed">
-            Report a municipal problem in your own words or track existing grievance progress online without logging in.
+            {t("howItWorksPage.ctaSubtitle")}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
             <Link
               href="/report"
               className="rounded-xl bg-[#F39A32] hover:bg-[#e08922] px-6 py-3 text-xs font-black text-[#123B5D] transition shadow active:scale-95"
             >
-              Report a Complaint
+              {t("howItWorksPage.ctaReport")}
             </Link>
             <Link
               href="/track"
               className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 px-6 py-3 text-xs font-bold text-white transition active:scale-95"
             >
-              Track Complaint
+              {t("howItWorksPage.ctaTrack")}
             </Link>
           </div>
         </div>

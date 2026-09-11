@@ -3,34 +3,37 @@
 import React from "react";
 import Link from "next/link";
 import { FileEdit, BrainCircuit, CornerDownRight, CheckCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const HowItWorksSection: React.FC = () => {
+  const { t } = useTranslation();
+
   const steps = [
     {
       step: "01",
-      title: "Report",
-      desc: "Citizen submits an issue or request in their own natural words (English, Hindi, or Marathi).",
+      title: t("howItWorks.step1Title"),
+      desc: t("howItWorks.step1Desc"),
       icon: FileEdit,
       pillBg: "bg-[#1F5E91] text-white",
     },
     {
       step: "02",
-      title: "AI Analysis",
-      desc: "JanSetu AI analyzes and categorizes the request, extracts duration, and identifies any missing details.",
+      title: t("howItWorks.step2Title"),
+      desc: t("howItWorks.step2Desc"),
       icon: BrainCircuit,
       pillBg: "bg-[#123B5D] text-white",
     },
     {
       step: "03",
-      title: "Smart Routing",
-      desc: "The issue is deterministically validated and directed to the appropriate PMC municipal department.",
+      title: t("howItWorks.step3Title"),
+      desc: t("howItWorks.step3Desc"),
       icon: CornerDownRight,
       pillBg: "bg-[#F39A32] text-[#123B5D]",
     },
     {
       step: "04",
-      title: "Track Progress",
-      desc: "Citizens can track updates, view officer notes, and inspect resolution proof on the public portal.",
+      title: t("howItWorks.step4Title"),
+      desc: t("howItWorks.step4Desc"),
       icon: CheckCircle,
       pillBg: "bg-emerald-600 text-white",
     },
@@ -43,13 +46,13 @@ export const HowItWorksSection: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#1F5E91]/10 px-3.5 py-1 text-xs font-bold text-[#1F5E91] border border-[#1F5E91]/20 mb-3">
             <ShieldCheck className="h-3.5 w-3.5 text-[#F39A32]" />
-            <span>Process Transparency</span>
+            <span>{t("howItWorks.tag")}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#123B5D] tracking-tight">
-            How JanSetu AI Works
+            {t("howItWorks.title")}
           </h2>
           <p className="mt-2 text-sm sm:text-base text-[#667085]">
-            A seamless, four-step journey from citizen grievance to verified municipal resolution.
+            {t("howItWorks.subtitle")}
           </p>
         </div>
 
@@ -82,11 +85,11 @@ export const HowItWorksSection: React.FC = () => {
                 </div>
 
                 <div className="mt-6 pt-3 border-t border-[#E9E9E9] text-[11px] font-bold text-[#1F5E91] flex items-center justify-between">
-                  <span>Step {idx + 1} of 4</span>
+                  <span>{t("howItWorks.stepCounter", { current: idx + 1 })}</span>
                   {idx < steps.length - 1 ? (
                     <ArrowRight className="h-3.5 w-3.5 text-[#667085] hidden lg:block" />
                   ) : (
-                    <span className="text-emerald-600">Complete</span>
+                    <span className="text-emerald-600">{t("howItWorks.complete")}</span>
                   )}
                 </div>
               </div>
@@ -100,7 +103,7 @@ export const HowItWorksSection: React.FC = () => {
             href="/how-it-works"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1F5E91] hover:text-[#123B5D] transition"
           >
-            <span>Explore full 7-step autonomous governance pipeline</span>
+            <span>{t("howItWorks.explorePipeline")}</span>
             <ArrowRight className="h-4 w-4 text-[#F39A32]" />
           </Link>
         </div>

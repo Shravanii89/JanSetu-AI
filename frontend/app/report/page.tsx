@@ -24,17 +24,26 @@ import {
 import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
 import { submitComplaint, analyzeTextLive } from "../../lib/api";
+import { useTranslation } from "../../context/LanguageContext";
 
 export default function ReportPage() {
   const router = useRouter();
+  const { t, language: activeLang } = useTranslation();
 
   // Form state
   const [rawText, setRawText] = useState("");
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState<string>(activeLang || "en");
   const [locationName, setLocationName] = useState("");
   const [citizenName, setCitizenName] = useState("");
   const [citizenPhone, setCitizenPhone] = useState("");
   const [citizenEmail, setCitizenEmail] = useState("");
+
+  // Sync with activeLang if user hasn't selected a different one in the form
+  React.useEffect(() => {
+    if (activeLang && activeLang !== language) {
+      setLanguage(activeLang);
+    }
+  }, [activeLang]);
 
   // AI & Submission state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -65,7 +74,7 @@ export default function ReportPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rawText.trim()) {
-      setErrorMessage("Please describe your civic complaint before submitting.");
+      setErrorMessage(t("reportPage.errorRequired") || "Please describe your civic complaint before submitting.");
       return;
     }
 
@@ -103,15 +112,15 @@ export default function ReportPage() {
       <div className="bg-white border-b border-[#E9E9E9] py-4">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-[#667085]">
-            <Link href="/" className="hover:text-[#1F5E91]">Home</Link>
+            <Link href="/" className="hover:text-[#1F5E91]">{t("reportPage.breadcrumbHome")}</Link>
             <span>/</span>
-            <span className="font-bold text-[#1F2933]">Citizen Services</span>
+            <span className="font-bold text-[#1F2933]">{t("reportPage.breadcrumbServices")}</span>
             <span>/</span>
-            <span className="font-bold text-[#1F5E91]">Report Complaint</span>
+            <span className="font-bold text-[#1F5E91]">{t("reportPage.breadcrumbCurrent")}</span>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#123B5D]">
             <Building2 className="h-4 w-4 text-[#F39A32]" />
-            <span>Pune Municipal Corporation (PMC)</span>
+            <span>{t("reportPage.govMandate")}</span>
           </div>
         </div>
       </div>
@@ -125,22 +134,22 @@ export default function ReportPage() {
             </div>
 
             <span className="rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800 border border-emerald-300 uppercase tracking-wider">
-              Grievance Registered Successfully
+              {t("reportPage.successBadge")}
             </span>
 
             <h1 className="mt-4 text-3xl font-black text-[#123B5D] tracking-tight">
-              Ticket Generated & Dispatched
+              {t("reportPage.successTitle")}
             </h1>
 
             <p className="mt-2 text-sm text-[#667085] max-w-lg mx-auto">
-              Your grievance has been analyzed by JanSetu AI and routed directly to the authorized field maintenance crew.
+              {t("reportPage.successSubtitle")}
             </p>
 
             {/* Official Tracking ID Card */}
             <div className="mt-8 rounded-2xl bg-[#123B5D] text-white p-6 max-w-md mx-auto shadow-lg text-left border-2 border-[#1F5E91]">
               <div className="flex items-center justify-between text-[11px] font-bold text-white/70 uppercase tracking-widest">
-                <span>Official Tracking Number</span>
-                <span className="text-[#F39A32]">Save For Tracking</span>
+                <span>{t("reportPage.trackingCardTitle")}</span>
+                <span className="text-[#F39A32]">{t("reportPage.trackingCardSave")}</span>
               </div>
 
               <div className="mt-2 flex items-center justify-between bg-white/10 p-3 rounded-xl border border-white/10">
@@ -158,13 +167,13 @@ export default function ReportPage() {
 
               <div className="mt-4 pt-4 border-t border-white/15 grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-white/60 block text-[10px] uppercase font-bold">Initial Status</span>
+                  <span className="text-white/60 block text-[10px] uppercase font-bold">{t("reportPage.initialStatus")}</span>
                   <span className="font-semibold text-emerald-400 mt-0.5 block">
                     {submitSuccess.status}
                   </span>
                 </div>
                 <div>
-                  <span className="text-white/60 block text-[10px] uppercase font-bold">Assigned Department</span>
+                  <span className="text-white/60 block text-[10px] uppercase font-bold">{t("reportPage.assignedDepartment")}</span>
                   <span className="font-semibold text-cyan-300 mt-0.5 block truncate">
                     {submitSuccess.ai_preview?.department?.replace("_", " ") || "Municipal Dept"}
                   </span>
@@ -178,7 +187,7 @@ export default function ReportPage() {
                 href={`/track?id=${submitSuccess.tracking_number}`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-6 py-3.5 text-sm font-bold text-white shadow-md transition-all active:scale-[0.98]"
               >
-                <span>Track Complaint Online</span>
+                <span>{t("reportPage.trackOnlineButton")}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <button
@@ -190,7 +199,7 @@ export default function ReportPage() {
                 }}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E9E9E9] bg-white hover:bg-[#F5F4F0] px-6 py-3.5 text-sm font-bold text-[#1F2933] transition"
               >
-                Submit Another Grievance
+                {t("reportPage.submitAnotherButton")}
               </button>
             </div>
           </div>
@@ -204,10 +213,10 @@ export default function ReportPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-[#123B5D] tracking-tight">
-                  Report a Civic Complaint
+                  {t("reportPage.formTitle")}
                 </h1>
                 <p className="text-xs text-[#667085] mt-0.5">
-                  Describe your problem in plain language. JanSetu AI handles categorization, priority & department routing.
+                  {t("reportPage.formSubtitle")}
                 </p>
               </div>
             </div>
@@ -224,7 +233,7 @@ export default function ReportPage() {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5 mb-2">
                   <Globe className="h-4 w-4 text-[#1F5E91]" />
-                  Preferred Language (Optional)
+                  {t("reportPage.prefLangLabel")}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
@@ -254,7 +263,7 @@ export default function ReportPage() {
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5">
                     <FileText className="h-4 w-4 text-[#1F5E91]" />
-                    Describe the Civic Issue <span className="text-rose-500">*</span>
+                    {t("reportPage.describeLabel")} <span className="text-rose-500">{t("reportPage.describeRequired")}</span>
                   </label>
                   <button
                     type="button"
@@ -263,7 +272,7 @@ export default function ReportPage() {
                     className="text-xs font-bold text-[#1F5E91] hover:text-[#123B5D] disabled:opacity-40 inline-flex items-center gap-1"
                   >
                     <Sparkles className="h-3.5 w-3.5 text-[#F39A32]" />
-                    <span>{isAnalyzing ? "Analyzing..." : "Instant AI Check"}</span>
+                    <span>{isAnalyzing ? t("reportPage.analyzing") : t("reportPage.instantCheck")}</span>
                   </button>
                 </div>
                 <textarea
@@ -276,7 +285,7 @@ export default function ReportPage() {
                       handlePreAnalyze();
                     }
                   }}
-                  placeholder="Example: There has been no water supply in our area for three days and nobody is responding. (You may also type in Marathi or Hindi)"
+                  placeholder={t("reportPage.textareaPlaceholder")}
                   className="w-full rounded-xl border border-[#E9E9E9] p-4 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] bg-white leading-relaxed"
                 />
               </div>
@@ -286,7 +295,7 @@ export default function ReportPage() {
                 <div className="rounded-xl border border-[#1F5E91]/30 bg-[#1F5E91]/5 p-4 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between border-b border-[#1F5E91]/20 pb-2 mb-3">
                     <span className="text-xs font-bold text-[#123B5D] flex items-center gap-1.5">
-                      <Sparkles className="h-4 w-4 text-[#F39A32]" /> AI Understanding & Routing Preview
+                      <Sparkles className="h-4 w-4 text-[#F39A32]" /> {t("reportPage.previewTitle")}
                     </span>
                     <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-[#E9E9E9] text-[#1F5E91] font-bold">
                       {aiPreview.provider}
@@ -295,21 +304,21 @@ export default function ReportPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                     <div>
-                      <span className="text-[#667085] block text-[10px] uppercase font-bold">Category</span>
+                      <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldCategory")}</span>
                       <span className="font-semibold text-[#1F2933]">{aiPreview.summary}</span>
                     </div>
                     <div>
-                      <span className="text-[#667085] block text-[10px] uppercase font-bold">Department</span>
+                      <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldDepartment")}</span>
                       <span className="font-bold text-[#1F5E91]">
                         {aiPreview.department.replace("_", " ")}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#667085] block text-[10px] uppercase font-bold">Priority</span>
+                      <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldPriority")}</span>
                       <span className="font-black text-[#F39A32]">{aiPreview.priority}</span>
                     </div>
                     <div>
-                      <span className="text-[#667085] block text-[10px] uppercase font-bold">Duration</span>
+                      <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldDuration")}</span>
                       <span className="font-semibold text-[#1F2933]">{aiPreview.extracted_duration || "N/A"}</span>
                     </div>
                   </div>
@@ -319,8 +328,8 @@ export default function ReportPage() {
                     <div className="mt-3 pt-3 border-t border-[#1F5E91]/10 flex items-start gap-2 text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
                       <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold">Missing Location Detected: </span>
-                        {aiPreview.clarification_questions?.[0] || "Please specify your area or landmark below so crews can locate it."}
+                        <span className="font-bold">{t("reportPage.missingLocationTitle")} </span>
+                        {aiPreview.clarification_questions?.[0] || t("reportPage.missingLocationDefault")}
                       </div>
                     </div>
                   )}
@@ -331,13 +340,13 @@ export default function ReportPage() {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5 mb-2">
                   <MapPin className="h-4 w-4 text-[#1F5E91]" />
-                  Area / Landmark / Location in Pune
+                  {t("reportPage.locationLabel")}
                 </label>
                 <input
                   type="text"
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
-                  placeholder="e.g. Baner Road near Balewadi Phata, or Kothrud near Karve Statue"
+                  placeholder={t("reportPage.locationPlaceholder")}
                   className="w-full rounded-xl border border-[#E9E9E9] px-4 py-3 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] bg-white"
                 />
               </div>
@@ -345,46 +354,46 @@ export default function ReportPage() {
               {/* Citizen Contact Information (Optional) */}
               <div className="border-t border-[#E9E9E9] pt-6">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F2933] mb-3">
-                  Citizen Contact Details (For SMS & Resolution Updates)
+                  {t("reportPage.contactHeading")}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">Your Full Name</label>
+                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.fullNameLabel")}</label>
                     <div className="relative">
                       <User className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
                       <input
                         type="text"
                         value={citizenName}
                         onChange={(e) => setCitizenName(e.target.value)}
-                        placeholder="e.g. Anand Deshmukh"
+                        placeholder={t("reportPage.fullNamePlaceholder")}
                         className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">Mobile Number</label>
+                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.mobileLabel")}</label>
                     <div className="relative">
                       <Phone className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
                       <input
                         type="tel"
                         value={citizenPhone}
                         onChange={(e) => setCitizenPhone(e.target.value)}
-                        placeholder="e.g. 9822012345"
+                        placeholder={t("reportPage.mobilePlaceholder")}
                         className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">Email Address</label>
+                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.emailLabel")}</label>
                     <div className="relative">
                       <Mail className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
                       <input
                         type="email"
                         value={citizenEmail}
                         onChange={(e) => setCitizenEmail(e.target.value)}
-                        placeholder="e.g. citizen@gmail.com"
+                        placeholder={t("reportPage.emailPlaceholder")}
                         className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
                       />
                     </div>
@@ -398,7 +407,7 @@ export default function ReportPage() {
                   href="/"
                   className="text-xs font-bold text-[#667085] hover:text-[#1F2933]"
                 >
-                  Cancel
+                  {t("reportPage.cancelButton")}
                 </Link>
 
                 <button
@@ -407,7 +416,7 @@ export default function ReportPage() {
                   className="inline-flex items-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95"
                 >
                   <Send className="h-4 w-4" />
-                  <span>{isSubmitting ? "Registering Grievance..." : "Submit Grievance to PMC"}</span>
+                  <span>{isSubmitting ? t("reportPage.submittingButton") : t("reportPage.submitButton")}</span>
                 </button>
               </div>
             </form>

@@ -1,33 +1,36 @@
 "use client";
 
 import React from "react";
-import { Brain, Route, Clock, HeartHandshake, Shield, Sparkles } from "lucide-react";
+import { Brain, Route, Clock, HeartHandshake, Sparkles } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const Features: React.FC = () => {
+  const { t } = useTranslation();
+
   const features = [
     {
-      title: "AI-Powered Assistance",
-      desc: "Get intelligent guidance and support for citizen services with multilingual natural language understanding.",
+      title: t("features.card1Title"),
+      desc: t("features.card1Desc"),
       icon: Brain,
-      tag: "Intelligent Triage",
+      tag: t("features.card1Tag"),
     },
     {
-      title: "Smart Complaint Routing",
-      desc: "Automatically identify and route complaints to relevant departments with zero hallucination guarantee.",
+      title: t("features.card2Title"),
+      desc: t("features.card2Desc"),
       icon: Route,
-      tag: "8 PMC Depts",
+      tag: t("features.card2Tag"),
     },
     {
-      title: "Real-Time Tracking",
-      desc: "Track your complaint status and receive updates with deterministic SLA countdown timers.",
+      title: t("features.card3Title"),
+      desc: t("features.card3Desc"),
       icon: Clock,
-      tag: "Public ID",
+      tag: t("features.card3Tag"),
     },
     {
-      title: "Citizen-Centric Services",
-      desc: "Access government services through one simple platform designed for every citizen across Maharashtra.",
+      title: t("features.card4Title"),
+      desc: t("features.card4Desc"),
       icon: HeartHandshake,
-      tag: "Accessible",
+      tag: t("features.card4Tag"),
     },
   ];
 
@@ -37,13 +40,13 @@ export const Features: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#1F5E91]/10 px-3.5 py-1 text-xs font-bold text-[#1F5E91] border border-[#1F5E91]/20 mb-3">
             <Sparkles className="h-3.5 w-3.5 text-[#F39A32]" />
-            <span>Platform Capabilities</span>
+            <span>{t("features.tag")}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#123B5D] tracking-tight">
-            Why Pune Citizens Rely on JanSetu AI
+            {t("features.title")}
           </h2>
           <p className="mt-2 text-sm sm:text-base text-[#667085]">
-            Engineered to convert everyday civic voice into verified, actionable municipal outcomes.
+            {t("features.subtitle")}
           </p>
         </div>
 
@@ -75,7 +78,7 @@ export const Features: React.FC = () => {
 
                 <div className="mt-5 pt-3 border-t border-[#F5F4F0] flex items-center gap-1.5 text-xs font-bold text-[#1F5E91]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#F39A32]" />
-                  <span>PMC Verified</span>
+                  <span>{t("features.pmcVerified")}</span>
                 </div>
               </div>
             );
