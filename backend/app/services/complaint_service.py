@@ -6,7 +6,7 @@ Handles submission, AI extraction, clarification, and deterministic ticket creat
 import json
 import random
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
@@ -18,6 +18,7 @@ from app.models.sla import SLAModel
 from app.models.clarification import ClarificationModel
 from app.models.audit_log import AuditLogModel
 from app.schemas.complaint import ComplaintCreate
+from app.core.time import get_ist_now, format_ist_iso, to_ist_naive
 from app.ai.pipeline.orchestrator import orchestrator
 from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
 from app.rules.escalation_rules import check_auto_escalation
@@ -53,6 +54,9 @@ class ComplaintService:
         else:
             initial_status = "ASSIGNED"
 
+        # Explicitly anchor complaint creation to Indian Standard Time (IST)
+        submitted_time = to_ist_naive(getattr(data, "client_timestamp", None)) or get_ist_now()
+
         # 4. Save Complaint
         complaint = ComplaintModel(
             tracking_number=tracking_number,
@@ -65,6 +69,8 @@ class ComplaintService:
             audio_url=data.audio_url,
             image_url=data.image_url,
             status=initial_status,
+            created_at=submitted_time,
+            updated_at=submitted_time,
         )
         db.add(complaint)
         await db.flush()
@@ -87,6 +93,8 @@ class ComplaintService:
             is_emergency=is_emergency,
             is_escalated=is_emergency,
             escalation_reason="P0 Emergency Auto-Escalation" if is_emergency else None,
+            created_at=submitted_time,
+            updated_at=submitted_time,
         )
         db.add(ticket)
         await db.flush()
@@ -111,11 +119,12 @@ class ComplaintService:
             citizen_response_draft=ai_res.get("citizen_response", ""),
             explanation=f"{ai_res.get('priority_reason', '')} | {ai_res.get('department_reason', '')}",
             raw_model_response=json.dumps(ai_res),
+            created_at=submitted_time,
         )
         db.add(analysis)
 
         # 7. Create SLA Record
-        resp_dl, res_dl = calculate_deadlines(priority)
+        resp_dl, res_dl = calculate_deadlines(priority, start_time=submitted_time)
         sla = SLAModel(
             ticket_id=ticket.id,
             priority=priority,
@@ -123,7 +132,9 @@ class ComplaintService:
             resolution_deadline=res_dl,
             status="PAUSED" if initial_status == "NEEDS_CLARIFICATION" else "WITHIN_SLA",
             is_paused=(initial_status == "NEEDS_CLARIFICATION"),
-            paused_at=datetime.now(timezone.utc) if initial_status == "NEEDS_CLARIFICATION" else None,
+            paused_at=submitted_time if initial_status == "NEEDS_CLARIFICATION" else None,
+            created_at=submitted_time,
+            updated_at=submitted_time,
         )
         db.add(sla)
 
@@ -181,8 +192,8 @@ class ComplaintService:
                 )
                 sla_data = {
                     "priority": sla.priority,
-                    "response_deadline": sla.response_deadline.isoformat(),
-                    "resolution_deadline": sla.resolution_deadline.isoformat(),
+                    "response_deadline": format_ist_iso(sla.response_deadline),
+                    "resolution_deadline": format_ist_iso(sla.resolution_deadline),
                     "status": current_sla_status,
                     "is_paused": sla.is_paused,
                 }
@@ -199,21 +210,21 @@ class ComplaintService:
                 "sender_type": c.sender_type,
                 "question": c.question,
                 "answer": c.answer,
-                "answered_at": c.answered_at.isoformat() if c.answered_at else None,
+                "answered_at": format_ist_iso(c.answered_at) if c.answered_at else None,
             }
             for c in clarifications
         ]
 
         # Construct public timeline
         timeline = [
-            {"status": "NEW", "timestamp": complaint.created_at.isoformat(), "title": "Grievance Submitted", "description": "Received via citizen portal."}
+            {"status": "NEW", "timestamp": format_ist_iso(complaint.created_at), "title": "Grievance Submitted", "description": "Received via citizen portal."}
         ]
         if analysis:
-            timeline.append({"status": "AI_ANALYZED", "timestamp": analysis.created_at.isoformat(), "title": "AI Triaged & Classified", "description": f"Routed to {ticket.department_id if ticket else 'department'}."})
+            timeline.append({"status": "AI_ANALYZED", "timestamp": format_ist_iso(analysis.created_at), "title": "AI Triaged & Classified", "description": f"Routed to {ticket.department_id if ticket else 'department'}."})
         if ticket and ticket.status == "NEEDS_CLARIFICATION":
-            timeline.append({"status": "NEEDS_CLARIFICATION", "timestamp": complaint.updated_at.isoformat(), "title": "Clarification Requested", "description": "Additional location details requested from citizen."})
+            timeline.append({"status": "NEEDS_CLARIFICATION", "timestamp": format_ist_iso(complaint.updated_at or complaint.created_at), "title": "Clarification Requested", "description": "Additional location details requested from citizen."})
         if ticket and ticket.status in ["ASSIGNED", "IN_PROGRESS", "RESOLVED"]:
-            timeline.append({"status": "ASSIGNED", "timestamp": ticket.created_at.isoformat(), "title": "Dispatched to Department", "description": "Department field crew notified."})
+            timeline.append({"status": "ASSIGNED", "timestamp": format_ist_iso(ticket.created_at), "title": "Dispatched to Department", "description": "Department field crew notified."})
         # Determine effective status (coordinate ticket and complaint state)
         is_resolved = (
             (ticket and (ticket.status == "RESOLVED" or ticket.resolved_at is not None))
@@ -223,11 +234,15 @@ class ComplaintService:
         effective_status = "RESOLVED" if is_resolved else (ticket.status if ticket else complaint.status)
 
         if ticket and ticket.status in ["IN_PROGRESS", "RESOLVED"]:
-            timeline.append({"status": "IN_PROGRESS", "timestamp": ticket.updated_at.isoformat(), "title": "Work In Progress", "description": "Official maintenance activity underway."})
+            timeline.append({"status": "IN_PROGRESS", "timestamp": format_ist_iso(ticket.updated_at or ticket.created_at), "title": "Work In Progress", "description": "Official maintenance activity underway."})
         if is_resolved:
+            resolved_timestamp = (
+                ticket.resolved_at if (ticket and ticket.resolved_at)
+                else (complaint.updated_at if complaint.updated_at else complaint.created_at)
+            )
             timeline.append({
                 "status": "RESOLVED",
-                "timestamp": (ticket.resolved_at.isoformat() if ticket and ticket.resolved_at else (complaint.updated_at.isoformat() if complaint.updated_at else complaint.created_at.isoformat())),
+                "timestamp": format_ist_iso(resolved_timestamp),
                 "title": "Grievance Resolved",
                 "description": (ticket.resolution_notes if ticket and ticket.resolution_notes else "Official resolution completed. Service restored.")
             })
@@ -248,9 +263,9 @@ class ComplaintService:
             "citizen_name": complaint.citizen_name,
             "citizen_phone": complaint.citizen_phone,
             "status": effective_status,
-            "created_at": complaint.created_at.isoformat(),
-            "updated_at": complaint.updated_at.isoformat() if complaint.updated_at else complaint.created_at.isoformat(),
-            "resolved_at": (ticket.resolved_at.isoformat() if ticket and ticket.resolved_at else (complaint.updated_at.isoformat() if is_resolved else None)),
+            "created_at": format_ist_iso(complaint.created_at),
+            "updated_at": format_ist_iso(complaint.updated_at or complaint.created_at),
+            "resolved_at": format_ist_iso(ticket.resolved_at) if (ticket and ticket.resolved_at) else (format_ist_iso(complaint.updated_at or complaint.created_at) if is_resolved else None),
             "department_id": ticket.department_id if ticket else "OTHER_HUMAN_REVIEW",
             "priority": ticket.priority if ticket else "P2",
             "issue_summary": ticket.issue_summary if ticket else "Civic Complaint",
@@ -354,9 +369,10 @@ class ComplaintService:
         ).order_by(ClarificationModel.created_at.desc())
         c_res = await db.execute(c_query)
         clarif = c_res.scalars().first()
+        now_ist = get_ist_now()
         if clarif:
             clarif.answer = answer.strip()
-            clarif.answered_at = datetime.now(timezone.utc)
+            clarif.answered_at = now_ist
 
         # Update Ticket
         t_res = await db.execute(select(TicketModel).where(TicketModel.complaint_id == complaint.id))
@@ -364,7 +380,7 @@ class ComplaintService:
         if ticket:
             ticket.location_name = answer.strip()
             ticket.status = "ASSIGNED"
-            ticket.updated_at = datetime.now(timezone.utc)
+            ticket.updated_at = now_ist
 
             # Resume SLA
             s_res = await db.execute(select(SLAModel).where(SLAModel.ticket_id == ticket.id))
@@ -372,10 +388,10 @@ class ComplaintService:
             if sla and sla.is_paused:
                 sla.is_paused = False
                 sla.status = "WITHIN_SLA"
-                sla.updated_at = datetime.now(timezone.utc)
+                sla.updated_at = now_ist
 
         complaint.status = "ASSIGNED"
-        complaint.updated_at = datetime.now(timezone.utc)
+        complaint.updated_at = now_ist
 
         # Audit
         audit = AuditLogModel(

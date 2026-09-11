@@ -3,9 +3,9 @@ JanSetu AI - Evidence Attachment Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class AttachmentModel(Base):
@@ -17,4 +17,4 @@ class AttachmentModel(Base):
     file_type = Column(String(50), nullable=False)  # image/jpeg, audio/wav, etc.
     file_size_bytes = Column(Integer, default=0, nullable=False)
     file_url = Column(String(500), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

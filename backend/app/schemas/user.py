@@ -4,7 +4,8 @@ JanSetu AI - User Schemas
 
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
+from app.core.time import format_ist_iso
 
 
 class UserResponse(BaseModel):
@@ -17,5 +18,9 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     is_active: bool
     created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)

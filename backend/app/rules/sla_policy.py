@@ -3,9 +3,10 @@ JanSetu AI - Deterministic Demo SLA Policy Engine
 Calculates deadlines and evaluates SLA compliance deterministically.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Dict, Tuple
 from app.rules.priorities import P0, P1, P2, P3
+from app.core.time import get_ist_now, to_ist_naive
 
 # Demo SLA Policy targets (in hours)
 # P0: Response 15m (0.25h), Resolution 4h
@@ -22,11 +23,9 @@ SLA_POLICY = DEMO_SLA_POLICY
 
 
 def calculate_deadlines(priority: str, start_time: datetime = None) -> Tuple[datetime, datetime]:
-    """Calculates response and resolution deadlines from start time."""
+    """Calculates response and resolution deadlines in Indian Standard Time (IST)."""
     if not start_time:
-        start_time = datetime.now(timezone.utc)
-    elif start_time.tzinfo is None:
-        start_time = start_time.replace(tzinfo=timezone.utc)
+        start_time = get_ist_now()
 
     policy = DEMO_SLA_POLICY.get(priority, DEMO_SLA_POLICY[P2])
     response_deadline = start_time + timedelta(hours=policy["response_hours"])
@@ -42,7 +41,7 @@ def evaluate_sla_status(
     now: datetime = None,
 ) -> str:
     """
-    Evaluates SLA state:
+    Evaluates SLA state in IST:
     WITHIN_SLA, AT_RISK (>= 75% elapsed), BREACHED, PAUSED, RESOLVED
     """
     if resolved_at is not None:
@@ -51,12 +50,15 @@ def evaluate_sla_status(
         return "PAUSED"
 
     if not now:
-        now = datetime.now(timezone.utc)
-    elif now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
+        now = get_ist_now()
 
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=timezone.utc)
+    # Align naive and aware datetimes to prevent subtraction errors
+    if created_at.tzinfo is not None and now.tzinfo is None:
+        now = to_ist_naive(now)
+        created_at = to_ist_naive(created_at)
+    elif created_at.tzinfo is None and now.tzinfo is not None:
+        now = to_ist_naive(now)
+        created_at = to_ist_naive(created_at)
 
     policy = DEMO_SLA_POLICY.get(priority, DEMO_SLA_POLICY[P2])
     total_allowed_seconds = policy["resolution_hours"] * 3600

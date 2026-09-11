@@ -3,9 +3,9 @@ JanSetu AI - Clarification Message Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class ClarificationModel(Base):
@@ -19,4 +19,4 @@ class ClarificationModel(Base):
     answer = Column(Text, nullable=True)
     requested_field = Column(String(100), nullable=True)
     answered_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

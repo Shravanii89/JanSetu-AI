@@ -87,13 +87,18 @@ engine = create_async_engine(
     **_engine_kwargs,
 )
 
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import event
+from app.core.time import IST
 
 # Automatic datetime normalization for PostgreSQL TIMESTAMP WITHOUT TIME ZONE
+# Converts any timezone-aware datetime to Indian Standard Time (IST, UTC+05:30)
+# before stripping tzinfo, ensuring PostgreSQL stores the exact local IST timestamp.
 def _strip_tz_from_params(val: Any) -> Any:
-    if isinstance(val, datetime) and val.tzinfo is not None:
-        return val.astimezone(timezone.utc).replace(tzinfo=None)
+    if isinstance(val, datetime):
+        if val.tzinfo is not None:
+            return val.astimezone(IST).replace(tzinfo=None)
+        return val
     elif isinstance(val, tuple):
         return tuple(_strip_tz_from_params(x) for x in val)
     elif isinstance(val, list):

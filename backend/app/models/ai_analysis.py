@@ -3,9 +3,9 @@ JanSetu AI - AI Analysis Record Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Float, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class AIAnalysisModel(Base):
@@ -30,4 +30,4 @@ class AIAnalysisModel(Base):
     citizen_response_draft = Column(Text, nullable=False)
     explanation = Column(Text, nullable=True)
     raw_model_response = Column(Text, nullable=False, default="{}")
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

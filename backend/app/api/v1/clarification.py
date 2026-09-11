@@ -19,6 +19,7 @@ from app.models.complaint import ComplaintModel
 from app.models.user import UserModel
 from app.models.audit_log import AuditLogModel
 from app.rules.roles import MUNICIPAL_ADMIN, DEPARTMENT_OFFICER
+from app.core.time import get_ist_now
 
 router = APIRouter(prefix="/clarification", tags=["Clarification"])
 
@@ -47,8 +48,9 @@ async def request_clarification(
     if current_user.role == DEPARTMENT_OFFICER and ticket.department_id != current_user.department_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
+    now_ist = get_ist_now()
     ticket.status = "NEEDS_CLARIFICATION"
-    ticket.updated_at = datetime.now(timezone.utc)
+    ticket.updated_at = now_ist
 
     # Pause SLA
     sla_res = await db.execute(select(SLAModel).where(SLAModel.ticket_id == ticket.id))
@@ -56,7 +58,7 @@ async def request_clarification(
     if sla and not sla.is_paused:
         sla.is_paused = True
         sla.status = "PAUSED"
-        sla.paused_at = datetime.now(timezone.utc)
+        sla.paused_at = now_ist
 
     # Record clarification
     clarif = ClarificationModel(

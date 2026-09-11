@@ -3,9 +3,9 @@ JanSetu AI - SLA Tracking Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class SLAModel(Base):
@@ -23,5 +23,5 @@ class SLAModel(Base):
     paused_at = Column(DateTime, nullable=True)
     total_paused_minutes = Column(Integer, default=0, nullable=False)
     breached_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)
+    updated_at = Column(DateTime, default=get_ist_now, onupdate=get_ist_now, nullable=False)

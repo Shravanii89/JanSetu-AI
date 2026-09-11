@@ -4,9 +4,9 @@ Enforces exactly 4 roles: CITIZEN, MUNICIPAL_ADMIN, DEPARTMENT_OFFICER, COLLECTO
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class UserModel(Base):
@@ -21,5 +21,5 @@ class UserModel(Base):
     department_id = Column(String(50), ForeignKey("departments.id"), nullable=True, index=True)
     phone = Column(String(20), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)
+    updated_at = Column(DateTime, default=get_ist_now, onupdate=get_ist_now, nullable=False)

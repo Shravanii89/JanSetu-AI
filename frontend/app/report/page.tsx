@@ -79,6 +79,7 @@ export default function ReportPage() {
         location_name: locationName.trim() || undefined,
         latitude: latitude,
         longitude: longitude,
+        client_timestamp: new Date().toISOString(),
       });
       setSubmitSuccess(result);
     } catch (err: any) {

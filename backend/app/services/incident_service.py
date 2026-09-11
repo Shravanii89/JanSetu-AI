@@ -3,7 +3,7 @@ JanSetu AI - Incident Clustering & Management Service
 Groups related complaints by location/category into systemic civic incidents.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func
@@ -13,6 +13,7 @@ from app.models.ticket import TicketModel
 from app.models.complaint import ComplaintModel
 from app.models.audit_log import AuditLogModel
 from app.rules.roles import DEPARTMENT_OFFICER
+from app.core.time import format_ist_iso
 
 
 class IncidentService:
@@ -62,9 +63,9 @@ class IncidentService:
                 "latitude": inc.latitude,
                 "longitude": inc.longitude,
                 "complaint_count": linked_tickets_count,
-                "first_reported_at": inc.first_reported_at.isoformat(),
-                "last_activity_at": inc.last_activity_at.isoformat(),
-                "created_at": inc.created_at.isoformat(),
+                "first_reported_at": format_ist_iso(inc.first_reported_at),
+                "last_activity_at": format_ist_iso(inc.last_activity_at),
+                "created_at": format_ist_iso(inc.created_at),
             })
 
         return incident_list
@@ -92,7 +93,7 @@ class IncidentService:
                 "status": t.status,
                 "priority": t.priority,
                 "location_name": t.location_name,
-                "created_at": t.created_at.isoformat(),
+                "created_at": format_ist_iso(t.created_at),
             })
 
         return {
@@ -107,9 +108,9 @@ class IncidentService:
             "latitude": inc.latitude,
             "longitude": inc.longitude,
             "complaint_count": len(linked_tickets) if linked_tickets else inc.complaint_count,
-            "first_reported_at": inc.first_reported_at.isoformat(),
-            "last_activity_at": inc.last_activity_at.isoformat(),
-            "created_at": inc.created_at.isoformat(),
+            "first_reported_at": format_ist_iso(inc.first_reported_at),
+            "last_activity_at": format_ist_iso(inc.last_activity_at),
+            "created_at": format_ist_iso(inc.created_at),
             "tickets": linked_tickets,
         }
 

@@ -6,7 +6,7 @@ Tests Flows A, B, C, D against running backend http://localhost:8000
 import httpx
 import json
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://127.0.0.1:8000/api/v1"
 
 def test_flow_a():
     print("\n--- Testing FLOW A: Citizen Intake, AI Triage, Missing Location, Clarification, Tracking ---")

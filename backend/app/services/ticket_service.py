@@ -4,7 +4,7 @@ Enforces server-side RBAC, department isolation, deterministic state transitions
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, desc
@@ -21,6 +21,7 @@ from app.rules.ticket_states import can_transition, RESOLVED, CLOSED, IN_PROGRES
 from app.rules.departments import is_valid_department
 from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
 from app.rules.roles import DEPARTMENT_OFFICER, MUNICIPAL_ADMIN, COLLECTOR
+from app.core.time import get_ist_now, format_ist_iso
 
 
 class TicketService:
@@ -77,10 +78,8 @@ class TicketService:
         if conditions:
             query = query.where(and_(*conditions))
 
-        # Order by emergency first, then priority, then recent
+        # Order by most recent entry first
         query = query.order_by(
-            desc(TicketModel.is_emergency),
-            desc(TicketModel.is_escalated),
             desc(TicketModel.created_at)
         ).offset(offset).limit(limit)
 
@@ -99,8 +98,8 @@ class TicketService:
                 )
                 sla_info = {
                     "priority": sla.priority,
-                    "response_deadline": sla.response_deadline.isoformat(),
-                    "resolution_deadline": sla.resolution_deadline.isoformat(),
+                    "response_deadline": format_ist_iso(sla.response_deadline),
+                    "resolution_deadline": format_ist_iso(sla.resolution_deadline),
                     "status": current_sla_status,
                     "is_paused": sla.is_paused,
                 }
@@ -129,8 +128,8 @@ class TicketService:
                 "is_escalated": ticket.is_escalated,
                 "escalation_reason": ticket.escalation_reason,
                 "resolution_notes": ticket.resolution_notes,
-                "resolved_at": ticket.resolved_at.isoformat() if ticket.resolved_at else None,
-                "created_at": ticket.created_at.isoformat(),
+                "resolved_at": format_ist_iso(ticket.resolved_at) if ticket.resolved_at else None,
+                "created_at": format_ist_iso(ticket.created_at),
                 "sla": sla_info,
             })
 
@@ -171,8 +170,8 @@ class TicketService:
             )
             sla_info = {
                 "priority": sla.priority,
-                "response_deadline": sla.response_deadline.isoformat(),
-                "resolution_deadline": sla.resolution_deadline.isoformat(),
+                "response_deadline": format_ist_iso(sla.response_deadline),
+                "resolution_deadline": format_ist_iso(sla.resolution_deadline),
                 "status": current_sla_status,
                 "is_paused": sla.is_paused,
             }
@@ -207,7 +206,7 @@ class TicketService:
                 "actor_id": a.actor_id,
                 "previous_state": json.loads(a.previous_state) if a.previous_state else None,
                 "new_state": json.loads(a.new_state) if a.new_state else None,
-                "created_at": a.created_at.isoformat(),
+                "created_at": format_ist_iso(a.created_at),
             }
             for a in audits
         ]
@@ -237,8 +236,8 @@ class TicketService:
             "is_escalated": ticket.is_escalated,
             "escalation_reason": ticket.escalation_reason,
             "resolution_notes": ticket.resolution_notes,
-            "resolved_at": ticket.resolved_at.isoformat() if ticket.resolved_at else None,
-            "created_at": ticket.created_at.isoformat(),
+            "resolved_at": format_ist_iso(ticket.resolved_at) if ticket.resolved_at else None,
+            "created_at": format_ist_iso(ticket.created_at),
             "sla": sla_info,
             "ai_analysis": ai_info,
             "audit_trail": audit_trail,
@@ -266,11 +265,12 @@ class TicketService:
         if not can_transition(old_status, new_status):
             raise ValueError(f"Invalid state transition: Cannot transition from {old_status} to {new_status}")
 
+        now_ist = get_ist_now()
         ticket.status = new_status
-        ticket.updated_at = datetime.now(timezone.utc)
+        ticket.updated_at = now_ist
 
         if new_status == RESOLVED:
-            ticket.resolved_at = datetime.now(timezone.utc)
+            ticket.resolved_at = now_ist
             if resolution_notes:
                 ticket.resolution_notes = resolution_notes
 
@@ -280,14 +280,14 @@ class TicketService:
             if sla:
                 sla.resolved_at = ticket.resolved_at
                 sla.status = "RESOLVED"
-                sla.updated_at = datetime.now(timezone.utc)
+                sla.updated_at = now_ist
 
         # Mirror status on parent complaint
         c_res = await db.execute(select(ComplaintModel).where(ComplaintModel.id == ticket.complaint_id))
         complaint = c_res.scalars().first()
         if complaint:
             complaint.status = new_status
-            complaint.updated_at = datetime.now(timezone.utc)
+            complaint.updated_at = now_ist
 
         # Audit log
         audit = AuditLogModel(
@@ -331,7 +331,8 @@ class TicketService:
             ticket.is_escalated = True
             ticket.escalation_reason = f"P0 Emergency Override: {justification}"
 
-        ticket.updated_at = datetime.now(timezone.utc)
+        now_ist = get_ist_now()
+        ticket.updated_at = now_ist
 
         # Recalculate SLA
         resp_dl, res_dl = calculate_deadlines(new_priority)
@@ -341,7 +342,7 @@ class TicketService:
             sla.priority = new_priority
             sla.response_deadline = resp_dl
             sla.resolution_deadline = res_dl
-            sla.updated_at = datetime.now(timezone.utc)
+            sla.updated_at = now_ist
 
         # Audit log
         audit = AuditLogModel(
@@ -381,7 +382,7 @@ class TicketService:
         old_dept = ticket.department_id
         ticket.department_id = new_department_id
         ticket.assigned_officer_id = None  # Reset officer assignment
-        ticket.updated_at = datetime.now(timezone.utc)
+        ticket.updated_at = get_ist_now()
 
         audit = AuditLogModel(
             entity_name="ticket",
@@ -413,9 +414,10 @@ class TicketService:
         if current_user.role == DEPARTMENT_OFFICER and ticket.department_id != current_user.department_id:
             raise PermissionError("Access denied")
 
+        now_ist = get_ist_now()
         ticket.is_escalated = True
         ticket.escalation_reason = reason
-        ticket.updated_at = datetime.now(timezone.utc)
+        ticket.updated_at = now_ist
 
         escalated_to = COLLECTOR if ticket.priority in ["P0", "P1"] else MUNICIPAL_ADMIN
         escalation = EscalationModel(
@@ -424,6 +426,7 @@ class TicketService:
             escalated_to_role=escalated_to,
             reason=reason,
             status="PENDING",
+            created_at=now_ist,
         )
         db.add(escalation)
 

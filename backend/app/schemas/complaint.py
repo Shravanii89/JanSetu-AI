@@ -4,7 +4,8 @@ JanSetu AI - Complaint Schemas
 
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
+from app.core.time import format_ist_iso
 
 
 class ComplaintCreate(BaseModel):
@@ -19,6 +20,7 @@ class ComplaintCreate(BaseModel):
     longitude: Optional[float] = None
     audio_url: Optional[str] = None
     image_url: Optional[str] = None
+    client_timestamp: Optional[datetime] = None
 
 
 class ClarificationSubmit(BaseModel):
@@ -37,5 +39,9 @@ class ComplaintResponse(BaseModel):
     created_at: datetime
     ticket_id: Optional[str] = None
     ai_preview: Optional[Dict[str, Any]] = None
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)
