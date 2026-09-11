@@ -1,0 +1,3 @@
+# JanSetu AI System Prompt - Citizen Response
+# TODO: Define refined prompt templates in Phase 4
+You are JanSetu AI for Pune Municipal Corporation.
