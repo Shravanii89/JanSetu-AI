@@ -1,0 +1,81 @@
+# JanSetu AI — Feature & Engineering Implementation Tracker
+
+This document tracks development progress across all engineering phases and capability areas.
+
+---
+
+## 1. Phase-by-Phase Progress Tracker
+
+- [x] **Phase 1: Project Foundation**
+  - [x] Canonicalize specification filenames
+  - [x] Root `.gitignore` configured
+  - [x] Environment template files created (`.env.example`, `backend/.env.example`, `frontend/.env.example`)
+  - [x] Core documentation suite created (PRD, DESIGN, APP_FLOW, ARCHITECTURE, TECH_SPEC, SCHEMA, API_SPEC, AI_SPEC, IMPLEMENTATION_PLAN, DECISIONS, TRACKER, README)
+  - [ ] Initialize modular backend (`backend/app/main.py`, config, requirements)
+  - [ ] Implement `GET /api/v1/health` returning `{"status": "ok"}`
+  - [ ] Initialize Next.js 15 App Router frontend with TypeScript & Tailwind CSS
+  - [ ] Verify both backend and frontend build and run cleanly
+- [ ] **Phase 2: Authentication & RBAC**
+  - [ ] User password hashing with bcrypt
+  - [ ] JWT token generation with role & `department_id` claims
+  - [ ] Unified official `/login` UI without role selection
+  - [ ] Role-based route guard and redirection logic
+  - [ ] Server-side RBAC dependencies (`require_role`, `require_department`)
+- [ ] **Phase 3: Complaint & Ticket Core**
+  - [ ] PostgreSQL SQLAlchemy 2.0 async models
+  - [ ] Tracking number generation (`JS-YYYY-LOC-XXXXX`)
+  - [ ] Complaint intake service
+  - [ ] Ticket state transition state machine
+  - [ ] Status histories and immutable audit logging
+- [ ] **Phase 4: Gemini AI Orchestration**
+  - [ ] Gemini client initialization with structured JSON output
+  - [ ] Pydantic `AIAnalysisSchema` validation
+  - [ ] Prompt injection sandbox (`<citizen_text>` delimiters)
+  - [ ] Multilingual entity extraction (English, Marathi, Hindi)
+  - [ ] Golden scenario verification (water outage 3 days)
+- [ ] **Phase 5: Missing Information & Clarification**
+  - [ ] Category-aware missing entity detection logic
+  - [ ] Status transition to `NEEDS_CLARIFICATION`
+  - [ ] Public citizen clarification UI at `/complaint/[id]`
+  - [ ] Clarification submission API & re-evaluation logic
+- [ ] **Phase 6: Priority & Controlled Routing**
+  - [ ] Pure Python deterministic rule engine
+  - [ ] Decoupling Priority (P0-P3) from citizen sentiment
+  - [ ] Immediate P0 safety bypass for live electrical/structural hazards
+  - [ ] 8-department strict routing engine + `OTHER_HUMAN_REVIEW` fallback
+- [ ] **Phase 7: SLA & Escalation Engine**
+  - [ ] Demo SLA policy matrix calculation (P0-P3)
+  - [ ] Real-time SLA status tracking (`WITHIN_SLA`, `AT_RISK`, `BREACHED`)
+  - [ ] SLA pause/resume mechanism during citizen clarification
+  - [ ] Automatic escalation record creation upon breach
+- [ ] **Phase 8: Department Officer Dashboard**
+  - [ ] Single reusable dashboard layout at `/department`
+  - [ ] Server-side query filtering by authenticated `department_id`
+  - [ ] Ticket queue with SLA countdown badges
+  - [ ] Ticket action studio with AI explanation & recommended SOPs
+  - [ ] Status update and resolution note dialogs
+- [ ] **Phase 9: Municipal Admin Command Center**
+  - [ ] Municipal operations overview at `/admin`
+  - [ ] 8-department workload cards with active counters
+  - [ ] Department-specific filtered view (`/admin/departments/[dept]`)
+  - [ ] Misrouting correction interface with audit logging
+  - [ ] City-wide SLA monitor & escalation overview
+- [ ] **Phase 10: Collector Dashboard**
+  - [ ] Senior leadership intelligence briefing at `/collector`
+  - [ ] Real-time P0 emergency & P1 critical disruption monitors
+  - [ ] Inter-department performance comparison scorecard
+  - [ ] AI-detected systemic infrastructure failure reports
+- [ ] **Phase 11: Incident Intelligence & Deduplication**
+  - [ ] Spatial-temporal grievance clustering algorithm (48h window, 1.5km radius)
+  - [ ] Candidate incident creation (e.g., *"Sector 5 Water Outage — 37 complaints"*)
+  - [ ] Incident management interface with one-click link confirmation
+- [ ] **Phase 12: Multilingual Support, Map & Analytics**
+  - [ ] Marathi and Hindi UI localization
+  - [ ] Citizen update drafts in detected language
+  - [ ] Leaflet OpenStreetMap complaint cluster & hotspot visualization
+  - [ ] Recharts time-series trends (resolution times, volume spikes)
+- [ ] **Phase 13: E2E Testing, Demo Data & Deployment**
+  - [ ] Realistic Pune seed data script (`seed_demo_data.py`)
+  - [ ] Automated Pytest suite covering backend rules, auth, and SLA
+  - [ ] Playwright E2E test verifying complete citizen-to-officer slice
+  - [ ] Dockerfile and Vercel/Render deployment configurations
