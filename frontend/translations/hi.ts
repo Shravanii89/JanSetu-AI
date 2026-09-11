@@ -316,6 +316,14 @@ export const hi: Translations = {
     missingLocationDefault: "कृपया नीचे अपना क्षेत्र या निकटतम लैंडमार्क बताएं ताकि दल वहां पहुंच सके।",
     locationLabel: "पुणे में क्षेत्र / लैंडमार्क / स्थान",
     locationPlaceholder: "उदा. बानेर रोड, बालेवाड़ी फाटा के पास, या कोथरूड कर्वे पुतले के पास",
+    useCurrentLocation: "मेरे वर्तमान स्थान का उपयोग करें",
+    detectingLocation: "स्थान का पता लगाया जा रहा है...",
+    mapTip: "सुझाव: आप स्थान चुनने के लिए मानचित्र पर भी क्लिक कर सकते हैं। पता स्वतः भर जाएगा।",
+    locationPermissionDenied: "स्थान अनुमति अस्वीकृत कर दी गई। कृपया मानचित्र पर क्लिक करके स्थान चुनें या मैन्युअल रूप से लिखें।",
+    locationUnavailable: "स्थान की जानकारी अनुपलब्ध है। कृपया मानचित्र पर स्थान चुनें या मैन्युअल रूप से दर्ज करें।",
+    locationTimeout: "स्थान अनुरोध का समय समाप्त हो गया। कृपया पुनः प्रयास करें।",
+    selectedLocation: "चयनित स्थान",
+    coordinates: "निर्देशांक",
     contactHeading: "नागरिक संपर्क विवरण (एसएमएस और समाधान अपडेट के लिए)",
     fullNameLabel: "आपका पूरा नाम",
     fullNamePlaceholder: "उदा. आनंद देशमुख",
@@ -338,6 +346,7 @@ export const hi: Translations = {
     trackOnlineButton: "ऑनलाइन स्थिति ट्रैक करें",
     submitAnotherButton: "अन्य शिकायत दर्ज करें",
     errorRequired: "कृपया जमा करने से पहले अपनी शिकायत का विवरण लिखें।",
+    errorLocationRequired: "कृपया अपनी शिकायत के लिए पुणे में स्थान दर्ज करें या चुनें।",
   },
 
   // Track Complaint Page

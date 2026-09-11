@@ -10,12 +10,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  Shield,
-  Clock,
   Send,
-  User,
-  Phone,
-  Mail,
   Copy,
   Check,
   Building2,
@@ -24,6 +19,7 @@ import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
 import { submitComplaint, analyzeTextLive } from "../../lib/api";
 import { useTranslation } from "../../context/LanguageContext";
+import LocationPicker from "../../components/location/LocationPicker";
 
 export default function ReportPage() {
   const router = useRouter();
@@ -32,9 +28,8 @@ export default function ReportPage() {
   // Form state
   const [rawText, setRawText] = useState("");
   const [locationName, setLocationName] = useState("");
-  const [citizenName, setCitizenName] = useState("");
-  const [citizenPhone, setCitizenPhone] = useState("");
-  const [citizenEmail, setCitizenEmail] = useState("");
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
   // AI & Submission state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -69,6 +64,11 @@ export default function ReportPage() {
       return;
     }
 
+    if (!locationName.trim()) {
+      setErrorMessage(t("reportPage.errorLocationRequired") || "Please provide or select a location in Pune for your grievance.");
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -77,9 +77,8 @@ export default function ReportPage() {
         raw_text: rawText,
         preferred_language: language,
         location_name: locationName.trim() || undefined,
-        citizen_name: citizenName.trim() || undefined,
-        citizen_phone: citizenPhone.trim() || undefined,
-        citizen_email: citizenEmail.trim() || undefined,
+        latitude: latitude,
+        longitude: longitude,
       });
       setSubmitSuccess(result);
     } catch (err: any) {
@@ -186,6 +185,8 @@ export default function ReportPage() {
                   setSubmitSuccess(null);
                   setRawText("");
                   setLocationName("");
+                  setLatitude(undefined);
+                  setLongitude(undefined);
                   setAiPreview(null);
                 }}
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E9E9E9] bg-white hover:bg-[#F5F4F0] px-6 py-3.5 text-sm font-bold text-[#1F2933] transition"
@@ -298,71 +299,18 @@ export default function ReportPage() {
                 </div>
               )}
 
-              {/* Location Field */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5 mb-2">
-                  <MapPin className="h-4 w-4 text-[#1F5E91]" />
-                  {t("reportPage.locationLabel")}
-                </label>
-                <input
-                  type="text"
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  placeholder={t("reportPage.locationPlaceholder")}
-                  className="w-full rounded-xl border border-[#E9E9E9] px-4 py-3 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] bg-white"
-                />
-              </div>
-
-              {/* Citizen Contact Information (Optional) */}
-              <div className="border-t border-[#E9E9E9] pt-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#1F2933] mb-3">
-                  {t("reportPage.contactHeading")}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.fullNameLabel")}</label>
-                    <div className="relative">
-                      <User className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
-                      <input
-                        type="text"
-                        value={citizenName}
-                        onChange={(e) => setCitizenName(e.target.value)}
-                        placeholder={t("reportPage.fullNamePlaceholder")}
-                        className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.mobileLabel")}</label>
-                    <div className="relative">
-                      <Phone className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
-                      <input
-                        type="tel"
-                        value={citizenPhone}
-                        onChange={(e) => setCitizenPhone(e.target.value)}
-                        placeholder={t("reportPage.mobilePlaceholder")}
-                        className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-semibold text-[#667085] block mb-1">{t("reportPage.emailLabel")}</label>
-                    <div className="relative">
-                      <Mail className="h-4 w-4 text-[#667085] absolute left-3 top-3" />
-                      <input
-                        type="email"
-                        value={citizenEmail}
-                        onChange={(e) => setCitizenEmail(e.target.value)}
-                        placeholder={t("reportPage.emailPlaceholder")}
-                        className="w-full rounded-lg border border-[#E9E9E9] pl-9 pr-3 py-2 text-xs text-[#1F2933] focus:border-[#1F5E91] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+              {/* Location Field with Interactive Leaflet Map & GPS Geolocation */}
+              <LocationPicker
+                value={locationName}
+                latitude={latitude}
+                longitude={longitude}
+                required={true}
+                onChange={(address, lat, lng) => {
+                  setLocationName(address);
+                  setLatitude(lat);
+                  setLongitude(lng);
+                }}
+              />
               {/* Submit Button */}
               <div className="pt-4 border-t border-[#E9E9E9] flex items-center justify-between">
                 <Link
@@ -374,7 +322,7 @@ export default function ReportPage() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || !rawText.trim()}
+                  disabled={isSubmitting || !rawText.trim() || !locationName.trim()}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95"
                 >
                   <Send className="h-4 w-4" />

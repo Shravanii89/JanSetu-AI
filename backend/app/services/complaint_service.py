@@ -82,6 +82,8 @@ class ComplaintService:
             category=ai_res.get("complaint_type", "general"),
             location_name=final_location,
             ward="Ward 12 (Pune West)",
+            latitude=data.latitude,
+            longitude=data.longitude,
             is_emergency=is_emergency,
             is_escalated=is_emergency,
             escalation_reason="P0 Emergency Auto-Escalation" if is_emergency else None,
