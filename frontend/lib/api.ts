@@ -1,6 +1,9 @@
 // JanSetu AI - Production Frontend API Client
 
 import { getToken } from "./auth";
+import { formatApiError } from "./error";
+
+export { formatApiError };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -22,7 +25,7 @@ export async function apiClient<T>(endpoint: string, options: RequestInit = {}):
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.detail || `API request failed with status ${res.status}`);
+    throw new Error(formatApiError(errorData, res.status));
   }
   return res.json();
 }
@@ -39,6 +42,18 @@ export async function submitComplaint(data: {
   longitude?: number;
   client_timestamp?: string;
 }) {
+  const sanitizedPayload = {
+    ...data,
+    latitude:
+      typeof data.latitude === "number" && !isNaN(data.latitude)
+        ? data.latitude
+        : undefined,
+    longitude:
+      typeof data.longitude === "number" && !isNaN(data.longitude)
+        ? data.longitude
+        : undefined,
+  };
+
   return apiClient<{
     id: string;
     tracking_number: string;
@@ -47,7 +62,7 @@ export async function submitComplaint(data: {
     ai_preview: any;
   }>("/complaints/", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(sanitizedPayload),
   });
 }
 

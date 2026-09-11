@@ -14,6 +14,7 @@ from app.services.complaint_service import complaint_service
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
 
+@router.post("", status_code=status.HTTP_201_CREATED, include_in_schema=False)
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def submit_complaint(
     complaint_in: ComplaintCreate,
