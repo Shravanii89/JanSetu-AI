@@ -12,9 +12,15 @@ import {
   Search,
   ChevronDown,
   Lock,
+  User as UserIcon,
+  LogOut,
+  Star,
+  Shield,
+  LayoutDashboard,
 } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
 import { useTextSize } from "../../context/TextSizeContext";
+import { useAuth } from "../../hooks/useAuth";
 import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const PublicNavbar: React.FC = () => {
@@ -22,6 +28,7 @@ export const PublicNavbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { textSize, setTextSize } = useTextSize();
   const { t, languageName, setLanguage } = useTranslation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { name: t("nav.home"), href: "/" },
@@ -159,26 +166,95 @@ export const PublicNavbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Action: Prominent Login / Official Access Button */}
+          {/* Right Action: Citizen Profile / Official Access / Login */}
           <div className="hidden sm:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="flex items-center gap-2 rounded-lg bg-[#1F5E91] hover:bg-[#123B5D] text-white px-4 py-2.5 text-xs font-bold shadow-md hover:shadow-lg transition-all border border-[#1F5E91] active:scale-[0.98]"
-            >
-              <Lock className="h-3.5 w-3.5 text-[#F39A32]" />
-              <span>{t("nav.loginRegister")}</span>
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                {user.role === "CITIZEN" ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#123B5D] bg-[#F5F4F0] hover:bg-[#E9E9E9] border border-[#E9E9E9] transition"
+                    >
+                      <LayoutDashboard className="h-3.5 w-3.5 text-[#1F5E91]" />
+                      <span>{user.full_name || "Dashboard"}</span>
+                    </Link>
+
+                    <div className="flex items-center gap-1 bg-amber-50 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold border border-amber-200/80 shadow-xs" title="Civic Credits">
+                      <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                      <span>{user.civic_credits ?? 0} pts</span>
+                    </div>
+
+                    <Link
+                      href="/profile"
+                      className="p-2 rounded-lg text-[#1F2933] hover:bg-[#F5F4F0] border border-[#E9E9E9] transition"
+                      title="Citizen Profile"
+                    >
+                      <UserIcon className="h-4 w-4 text-[#1F5E91]" />
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href={
+                      user.role === "MUNICIPAL_ADMIN"
+                        ? "/admin"
+                        : user.role === "DEPARTMENT_OFFICER"
+                        ? "/department"
+                        : "/collector"
+                    }
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#123B5D] hover:bg-[#1F5E91] transition"
+                  >
+                    <Shield className="h-3.5 w-3.5 text-[#F39A32]" />
+                    <span>
+                      {user.role === "MUNICIPAL_ADMIN"
+                        ? "Admin Portal"
+                        : user.role === "DEPARTMENT_OFFICER"
+                        ? "Officer Portal"
+                        : "Collector Portal"}
+                    </span>
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg font-bold border border-red-200 transition"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 rounded-lg bg-[#1F5E91] hover:bg-[#123B5D] text-white px-4 py-2.5 text-xs font-bold shadow-md hover:shadow-lg transition-all border border-[#1F5E91] active:scale-[0.98]"
+              >
+                <Lock className="h-3.5 w-3.5 text-[#F39A32]" />
+                <span>{t("nav.loginRegister")}</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden items-center gap-2">
-            <Link
-              href="/login"
-              className="flex items-center gap-1 rounded-md bg-[#1F5E91] px-2.5 py-1.5 text-xs font-bold text-white"
-            >
-              <Lock className="h-3 w-3 text-[#F39A32]" />
-              <span>{t("nav.loginRegister").split("/")[0].trim()}</span>
-            </Link>
+            {isAuthenticated && user ? (
+              <Link
+                href={user.role === "CITIZEN" ? "/dashboard" : "/admin"}
+                className="flex items-center gap-1 rounded-md bg-[#1F5E91] px-2.5 py-1.5 text-xs font-bold text-white"
+              >
+                <UserIcon className="h-3 w-3 text-[#F39A32]" />
+                <span>{user.full_name?.split(" ")[0] || "Account"}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1 rounded-md bg-[#1F5E91] px-2.5 py-1.5 text-xs font-bold text-white"
+              >
+                <Lock className="h-3 w-3 text-[#F39A32]" />
+                <span>{t("nav.loginRegister").split("/")[0].trim()}</span>
+              </Link>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-[#1F2933] hover:bg-[#F5F4F0] border border-[#E9E9E9]"
@@ -193,6 +269,60 @@ export const PublicNavbar: React.FC = () => {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-[#E9E9E9] bg-white px-4 py-4 space-y-2 shadow-lg animate-in fade-in duration-200">
+          {isAuthenticated && user && (
+            <div className="p-3 mb-2 rounded-xl bg-[#F5F4F0] border border-[#E9E9E9]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-[#123B5D]">{user.full_name}</div>
+                  <div className="text-[10px] text-[#667085] capitalize">{user.role.toLowerCase().replace('_', ' ')}</div>
+                </div>
+                {user.role === "CITIZEN" && (
+                  <div className="flex items-center gap-1 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[11px] font-bold">
+                    <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    <span>{user.civic_credits ?? 0} pts</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2.5 flex items-center gap-2 pt-2 border-t border-[#E9E9E9]">
+                {user.role === "CITIZEN" ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex-1 text-center py-1.5 rounded-lg bg-[#1F5E91] text-white text-xs font-bold"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex-1 text-center py-1.5 rounded-lg bg-white border border-[#E9E9E9] text-[#1F2933] text-xs font-bold"
+                    >
+                      Profile
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href={user.role === "MUNICIPAL_ADMIN" ? "/admin" : user.role === "DEPARTMENT_OFFICER" ? "/department" : "/collector"}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 text-center py-1.5 rounded-lg bg-[#123B5D] text-white text-xs font-bold"
+                  >
+                    Official Portal
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="px-2.5 py-1.5 text-xs text-red-600 font-bold hover:bg-red-50 rounded-lg border border-red-200"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (

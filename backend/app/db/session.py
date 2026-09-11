@@ -140,7 +140,8 @@ async def init_db() -> None:
     from app.models import (
         user, department, complaint, ticket, assignment,
         clarification, ai_analysis, sla, incident, escalation,
-        attachment, notification, audit_log
+        attachment, notification, audit_log,
+        complaint_update, complaint_draft, contribution, badge
     )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

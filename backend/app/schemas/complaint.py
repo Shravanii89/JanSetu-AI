@@ -50,3 +50,26 @@ class ComplaintResponse(BaseModel):
         return format_ist_iso(dt) or dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class DraftSaveRequest(BaseModel):
+    session_id: Optional[str] = None
+    complaint_data: Dict[str, Any]
+
+
+class DraftResponse(BaseModel):
+    id: str
+    session_id: Optional[str] = None
+    complaint_data: Dict[str, Any]
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
+
+
+class ComplaintUpdateCreate(BaseModel):
+    message: str
+    internal_note: Optional[str] = None
+    status: Optional[str] = None

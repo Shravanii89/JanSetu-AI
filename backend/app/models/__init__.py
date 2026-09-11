@@ -15,6 +15,10 @@ from app.models.attachment import AttachmentModel
 from app.models.notification import NotificationModel
 from app.models.audit_log import AuditLogModel
 from app.models.assignment import AssignmentModel
+from app.models.complaint_update import ComplaintUpdateModel
+from app.models.complaint_draft import ComplaintDraftModel
+from app.models.contribution import UserContributionModel
+from app.models.badge import BadgeModel, UserBadgeModel
 
 __all__ = [
     "DepartmentModel",
@@ -30,4 +34,9 @@ __all__ = [
     "NotificationModel",
     "AuditLogModel",
     "AssignmentModel",
+    "ComplaintUpdateModel",
+    "ComplaintDraftModel",
+    "UserContributionModel",
+    "BadgeModel",
+    "UserBadgeModel",
 ]

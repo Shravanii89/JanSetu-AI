@@ -96,27 +96,84 @@ export async function analyzeTextLive(text: string, language = "en") {
   });
 }
 
-// 3. Official Authentication
-export async function loginOfficial(email_or_employee_id: string, password: string) {
+// 3. Authentication & Citizen Management
+export async function loginUser(email_or_employee_id: string, password: string) {
   return apiClient<{
     access_token: string;
     token_type: string;
-    user: {
-      id: string;
-      email: string;
-      full_name: string;
-      role: "MUNICIPAL_ADMIN" | "DEPARTMENT_OFFICER" | "COLLECTOR" | "CITIZEN";
-      department_id?: string;
-      employee_id?: string;
-    };
+    user: any;
   }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email_or_employee_id, password }),
   });
 }
 
+// Backwards-compatible alias for official login
+export const loginOfficial = loginUser;
+
+export async function registerCitizen(data: {
+  full_name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirm_password: string;
+  address?: string;
+  ward?: string;
+  preferred_language?: string;
+}) {
+  return apiClient<{
+    access_token: string;
+    token_type: string;
+    user: any;
+  }>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getMe() {
   return apiClient<any>("/auth/me");
+}
+
+export async function getMyComplaints() {
+  return apiClient<any[]>("/complaints/my");
+}
+
+export async function getUserContributions() {
+  return apiClient<any[]>("/auth/contributions");
+}
+
+export async function getUserBadges() {
+  return apiClient<{ total_earned: number; badges: any[] }>("/auth/badges");
+}
+
+export async function updateUserProfile(data: {
+  full_name?: string;
+  phone?: string;
+  address?: string;
+  ward?: string;
+  preferred_language?: string;
+  profile_image?: string;
+}) {
+  return apiClient<any>("/auth/profile", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function saveComplaintDraft(data: {
+  session_id?: string;
+  complaint_data: any;
+}) {
+  return apiClient<{ status: string; draft_id: string; message: string }>("/complaints/draft", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getComplaintDraft(draft_id: string, session_id?: string) {
+  const qs = session_id ? `?session_id=${encodeURIComponent(session_id)}` : "";
+  return apiClient<any>(`/complaints/draft/${draft_id}${qs}`);
 }
 
 // 4. Operational Tickets
