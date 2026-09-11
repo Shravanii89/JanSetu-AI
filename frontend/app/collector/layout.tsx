@@ -3,8 +3,9 @@
 // JanSetu AI - Collector Executive Briefing Layout
 import React from "react";
 import Link from "next/link";
-import { Shield, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
+import JanSetuLogo from "../../components/branding/JanSetuLogo";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
@@ -14,12 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="tricolor-stripe" />
       <header className="border-b border-[#E9E9E9] bg-[#123B5D] text-white px-6 py-3.5 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white border border-white/20">
-            <Shield className="h-4 w-4 text-[#F39A32]" />
-          </div>
-          <span className="font-black text-white text-lg">
-            JanSetu <span className="text-[#F39A32]">AI</span>
-          </span>
+          <JanSetuLogo variant="full" size="sm" theme="dark" showTagline={false} showBadge={false} href="/" />
           <span className="rounded-md bg-amber-500 px-2.5 py-0.5 text-xs font-black text-[#123B5D]">
             {t("officialLayout.collectorRole")}
           </span>

@@ -9,6 +9,7 @@ import Footer from "../../components/layout/Footer";
 import { loginOfficial } from "../../lib/api";
 import { setToken } from "../../lib/auth";
 import { useTranslation } from "../../context/LanguageContext";
+import JanSetuLogo from "../../components/branding/JanSetuLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,14 +66,20 @@ export default function LoginPage() {
         <div className="w-full max-w-md my-8">
           <div className="rounded-2xl border border-[#E9E9E9] bg-white p-8 shadow-md">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#123B5D] text-white shadow-md border-2 border-[#1F5E91] mb-4">
-                <Shield className="h-7 w-7 text-[#F39A32]" />
+            <div className="text-center mb-8 flex flex-col items-center">
+              <div className="mb-4">
+                <JanSetuLogo variant="icon" size="lg" theme="light" />
               </div>
               <h1 className="text-2xl font-black text-[#123B5D] tracking-tight">
-                {t("loginPage.title")}
+                JanSetu <span className="text-[#F39A32]">AI</span>
               </h1>
-              <p className="text-xs text-[#667085] mt-1 font-medium">
+              <p className="text-xs text-[#667085] mt-0.5 font-semibold">
+                AI-Powered Citizen Service Platform
+              </p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[#1F5E91]/10 px-3 py-1 text-[11px] font-bold text-[#1F5E91] border border-[#1F5E91]/20">
+                <span>{t("loginPage.title")}</span>
+              </div>
+              <p className="text-[11px] text-[#667085] mt-1 font-medium">
                 {t("loginPage.subtitle")}
               </p>
             </div>

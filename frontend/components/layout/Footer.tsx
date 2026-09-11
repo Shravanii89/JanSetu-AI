@@ -2,8 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, Phone, Mail, MapPin, ExternalLink, Globe, Heart } from "lucide-react";
+import { Phone, Mail, MapPin, ExternalLink, Globe, Heart } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
+import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const Footer: React.FC = () => {
   const { t } = useTranslation();
@@ -16,9 +17,7 @@ export const Footer: React.FC = () => {
           {/* Col 1 & 2: Branding & Description */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white border border-white/20 shadow-inner">
-                <Shield className="h-6 w-6 text-[#F39A32]" />
-              </div>
+              <JanSetuLogo variant="icon" size="md" theme="dark" />
               <div>
                 <span className="text-2xl font-black tracking-tight text-white">
                   JanSetu <span className="text-[#F39A32]">AI</span>

@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, Bell, LogOut, User, Building2, ChevronDown } from "lucide-react";
+import { Bell, LogOut, User, Building2, ChevronDown } from "lucide-react";
 import { clearToken } from "../../lib/auth";
 import { getMe } from "../../lib/api";
+import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipal Command Portal" }) => {
   const router = useRouter();
@@ -44,14 +45,7 @@ export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipa
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand & Portal Title */}
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white border border-white/20">
-              <Shield className="h-4 w-4 text-[#F39A32]" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-white hidden sm:inline">
-              JanSetu<span className="text-[#F39A32]">.AI</span>
-            </span>
-          </Link>
+          <JanSetuLogo variant="full" size="sm" theme="dark" showTagline={false} showBadge={false} href="/" />
           <span className="text-white/40 hidden sm:inline">|</span>
           <span className="text-sm font-medium text-white/90 truncate">{title}</span>
         </div>
