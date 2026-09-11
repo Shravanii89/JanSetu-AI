@@ -3,7 +3,7 @@ JanSetu AI - Department Schemas
 """
 
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DepartmentResponse(BaseModel):
@@ -15,5 +15,4 @@ class DepartmentResponse(BaseModel):
     open_tickets_count: int = 0
     sla_compliance_pct: float = 100.0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

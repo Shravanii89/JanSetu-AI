@@ -4,7 +4,7 @@ JanSetu AI - Complaint Schemas
 
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ComplaintCreate(BaseModel):
@@ -36,5 +36,4 @@ class ComplaintResponse(BaseModel):
     ticket_id: Optional[str] = None
     ai_preview: Optional[Dict[str, Any]] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

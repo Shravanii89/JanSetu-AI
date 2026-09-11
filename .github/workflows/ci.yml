@@ -17,9 +17,11 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          cd backend
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
       - name: Run Pytest
+        env:
+          PYTHONPATH: backend
         run: |
           pytest backend/tests
 

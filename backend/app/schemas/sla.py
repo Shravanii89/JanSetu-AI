@@ -4,7 +4,7 @@ JanSetu AI - SLA Schemas
 
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SLAResponse(BaseModel):
@@ -19,5 +19,4 @@ class SLAResponse(BaseModel):
     is_paused: bool
     breached_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
