@@ -17,8 +17,11 @@ import {
   FileText,
   Calendar,
   Layers,
+  Copy,
+  Check,
 } from "lucide-react";
 import PublicNavbar from "../../components/navigation/PublicNavbar";
+import Footer from "../../components/layout/Footer";
 import { trackComplaint, submitClarification } from "../../lib/api";
 
 export default function TrackPage() {
@@ -34,6 +37,7 @@ export default function TrackPage() {
   const [clarificationAnswer, setClarificationAnswer] = useState("");
   const [isSubmittingClarif, setIsSubmittingClarif] = useState(false);
   const [clarifSuccessMsg, setClarifSuccessMsg] = useState<string | null>(null);
+  const [copiedTracking, setCopiedTracking] = useState(false);
 
   const fetchComplaint = async (id: string) => {
     if (!id.trim()) return;
@@ -79,74 +83,104 @@ export default function TrackPage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedTracking(true);
+    setTimeout(() => setCopiedTracking(false), 2500);
+  };
+
   const getPriorityBadge = (prio: string) => {
     switch (prio) {
       case "P0":
-        return <span className="rounded-md bg-rose-600 px-2 py-0.5 text-xs font-bold text-white shadow-sm">P0 Critical Emergency</span>;
+        return <span className="rounded-md bg-rose-700 px-2.5 py-1 text-xs font-black text-white shadow-sm">P0 Critical Emergency</span>;
       case "P1":
-        return <span className="rounded-md bg-orange-600 px-2 py-0.5 text-xs font-bold text-white shadow-sm">P1 High Impact</span>;
+        return <span className="rounded-md bg-[#F39A32] text-[#123B5D] px-2.5 py-1 text-xs font-black shadow-sm">P1 High Impact</span>;
       case "P2":
-        return <span className="rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">P2 Medium</span>;
+        return <span className="rounded-md bg-amber-500 px-2.5 py-1 text-xs font-black text-white shadow-sm">P2 Medium</span>;
       default:
-        return <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-bold text-white shadow-sm">{prio} Low</span>;
+        return <span className="rounded-md bg-[#1F5E91] px-2.5 py-1 text-xs font-black text-white shadow-sm">{prio} Low</span>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "RESOLVED":
-        return <span className="rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 text-xs font-bold">Resolved</span>;
+        return <span className="rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 text-xs font-black">Resolved</span>;
       case "IN_PROGRESS":
-        return <span className="rounded-md bg-blue-100 text-blue-800 border border-blue-300 px-2.5 py-1 text-xs font-bold">In Progress</span>;
+        return <span className="rounded-lg bg-blue-100 text-[#1F5E91] border border-blue-300 px-3 py-1.5 text-xs font-black">In Progress</span>;
       case "ASSIGNED":
-        return <span className="rounded-md bg-indigo-100 text-indigo-800 border border-indigo-300 px-2.5 py-1 text-xs font-bold">Assigned</span>;
+        return <span className="rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 px-3 py-1.5 text-xs font-black">Assigned to Crew</span>;
       case "NEEDS_CLARIFICATION":
-        return <span className="rounded-md bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 text-xs font-bold animate-pulse">Awaiting Citizen Info</span>;
+        return <span className="rounded-lg bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 text-xs font-black animate-pulse">Awaiting Citizen Info</span>;
       case "ESCALATED":
-        return <span className="rounded-md bg-purple-100 text-purple-800 border border-purple-300 px-2.5 py-1 text-xs font-bold">Escalated</span>;
+        return <span className="rounded-lg bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1.5 text-xs font-black">Escalated</span>;
       default:
-        return <span className="rounded-md bg-slate-100 text-slate-800 border border-slate-300 px-2.5 py-1 text-xs font-bold">{status}</span>;
+        return <span className="rounded-lg bg-slate-100 text-slate-800 border border-slate-300 px-3 py-1.5 text-xs font-black">{status}</span>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#F5F4F0] flex flex-col selection:bg-[#1F5E91] selection:text-white">
       <PublicNavbar />
 
+      {/* Breadcrumbs */}
+      <div className="bg-white border-b border-[#E9E9E9] py-4">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-[#667085]">
+            <Link href="/" className="hover:text-[#1F5E91]">Home</Link>
+            <span>/</span>
+            <span className="font-bold text-[#1F2933]">Citizen Services</span>
+            <span>/</span>
+            <span className="font-bold text-[#1F5E91]">Track Grievance</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#123B5D]">
+            <Building2 className="h-4 w-4 text-[#F39A32]" />
+            <span>PMC Civic Redressal</span>
+          </div>
+        </div>
+      </div>
+
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Search Header */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm mb-6 text-center sm:text-left">
-          <h1 className="text-2xl font-extrabold text-slate-900">
-            Track Citizen Grievance
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Enter your PMC tracking number (e.g., <code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono">JS-2026-PUN-00101</code>) to view live status, verified timeline, and department updates.
-          </p>
+        {/* Search Header Card */}
+        <div className="rounded-2xl border border-[#E9E9E9] bg-white p-6 sm:p-8 shadow-sm mb-6 text-center sm:text-left">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#123B5D] text-white">
+              <Search className="h-5 w-5 text-[#F39A32]" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-[#123B5D]">
+                Track Citizen Grievance
+              </h1>
+              <p className="text-xs text-[#667085]">
+                Enter your PMC tracking number to inspect real-time resolution timeline, assigned engineer, and SLA targets.
+              </p>
+            </div>
+          </div>
 
           <form onSubmit={handleSearch} className="mt-6 flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <Search className="h-4 w-4 text-[#667085] absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
                 placeholder="Enter Tracking ID (e.g. JS-2026-PUN-00101)"
-                className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-mono"
+                className="w-full rounded-xl border border-[#E9E9E9] pl-10 pr-4 py-3 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] font-mono bg-white"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading || !searchId.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-slate-800 disabled:opacity-50 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-7 py-3 text-xs sm:text-sm font-bold text-white shadow transition disabled:opacity-50 active:scale-95"
             >
-              <Search className="h-3.5 w-3.5" />
-              <span>{isLoading ? "Searching..." : "Track"}</span>
+              <Search className="h-4 w-4" />
+              <span>{isLoading ? "Searching..." : "Track Status"}</span>
             </button>
           </form>
 
           {/* Quick Demo Shortcuts */}
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span className="font-semibold">Demo IDs:</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#667085]">
+            <span className="font-bold text-[#1F2933]">Sample Tracking IDs:</span>
             {["JS-2026-PUN-00101", "JS-2026-PUN-00102", "JS-2026-PUN-00111"].map((demoId) => (
               <button
                 key={demoId}
@@ -155,7 +189,7 @@ export default function TrackPage() {
                   setSearchId(demoId);
                   fetchComplaint(demoId);
                 }}
-                className="rounded bg-slate-100 hover:bg-slate-200 px-2 py-0.5 font-mono text-indigo-600 transition"
+                className="rounded-lg bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white px-2.5 py-1 font-mono text-xs font-bold text-[#1F5E91] border border-[#E9E9E9] transition"
               >
                 {demoId}
               </button>
@@ -172,63 +206,70 @@ export default function TrackPage() {
 
         {/* Complaint Details Card */}
         {complaint && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="rounded-2xl border border-[#E9E9E9] bg-white p-6 sm:p-8 shadow-sm">
               {/* Header Info */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E9E9E9] pb-6 mb-6">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-mono text-xs font-bold text-[#1F5E91] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
                       {complaint.tracking_number}
                     </span>
+                    <button
+                      onClick={() => copyToClipboard(complaint.tracking_number)}
+                      className="p-1 rounded text-[#667085] hover:text-[#1F5E91] transition"
+                      title="Copy Tracking ID"
+                    >
+                      {copiedTracking ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
                     {getPriorityBadge(complaint.priority)}
                   </div>
-                  <h2 className="text-xl font-extrabold text-slate-900 mt-1">
+                  <h2 className="text-xl sm:text-2xl font-black text-[#123B5D]">
                     {complaint.issue_summary || "Civic Grievance"}
                   </h2>
                 </div>
                 <div className="text-left sm:text-right">
-                  <div className="text-xs text-slate-400 mb-1">Current Lifecycle Status</div>
+                  <div className="text-[11px] font-bold text-[#667085] uppercase tracking-wider mb-1">Status</div>
                   {getStatusBadge(complaint.status)}
                 </div>
               </div>
 
               {/* Grid Properties */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs mb-6">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
                     Assigned Department
                   </span>
-                  <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <Building2 className="h-4 w-4 text-indigo-500" />
-                    {complaint.department_id.replace("_", " ")}
+                  <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
+                    <Building2 className="h-4 w-4 text-[#1F5E91]" />
+                    {complaint.department_id ? complaint.department_id.replace("_", " ") : "Municipal Dept"}
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    Location
+                <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
+                    Location in Pune
                   </span>
-                  <span className="font-semibold text-slate-800 flex items-center gap-1.5 truncate">
+                  <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm truncate">
                     <MapPin className="h-4 w-4 text-rose-500" />
                     {complaint.location_name || "Missing (Clarification Required)"}
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                    SLA Status
+                <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
+                    SLA Resolution Clock
                   </span>
-                  <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <Clock className="h-4 w-4 text-amber-500" />
+                  <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
+                    <Clock className="h-4 w-4 text-[#F39A32]" />
                     {complaint.sla?.status || "WITHIN_SLA"}
                   </span>
                 </div>
               </div>
 
               {/* Raw Grievance Text */}
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-700 leading-relaxed mb-6">
-                <span className="font-bold text-slate-500 block text-[10px] uppercase tracking-wider mb-1">
+              <div className="rounded-xl bg-[#F5F4F0] border border-[#E9E9E9] p-4 text-xs text-[#1F2933] leading-relaxed mb-6">
+                <span className="font-bold text-[#667085] block text-[10px] uppercase tracking-wider mb-1">
                   Citizen&apos;s Original Statement
                 </span>
                 &ldquo;{complaint.raw_text}&rdquo;
@@ -246,7 +287,7 @@ export default function TrackPage() {
 
               {/* Interactive Clarification Box if Awaiting Citizen */}
               {complaint.status === "NEEDS_CLARIFICATION" && (
-                <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-5 mb-6 text-xs text-amber-950">
+                <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 mb-6 text-xs text-amber-950">
                   <div className="flex items-center gap-2 font-bold text-amber-900 mb-2">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                     <span>Action Required: Municipal Team Needs Clarification</span>
@@ -269,12 +310,12 @@ export default function TrackPage() {
                       value={clarificationAnswer}
                       onChange={(e) => setClarificationAnswer(e.target.value)}
                       placeholder="e.g., Baner near Balewadi Phata, opposite Orchid School"
-                      className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs text-[#1F2933] focus:outline-none focus:ring-1 focus:ring-amber-500"
                     />
                     <button
                       type="submit"
                       disabled={isSubmittingClarif || !clarificationAnswer.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 text-xs shadow transition disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#F39A32] hover:bg-[#e08922] text-[#123B5D] font-black px-4 py-2 text-xs shadow transition disabled:opacity-50"
                     >
                       <Send className="h-3.5 w-3.5" />
                       <span>{isSubmittingClarif ? "Submitting..." : "Submit Clarification"}</span>
@@ -284,26 +325,26 @@ export default function TrackPage() {
               )}
 
               {/* Vertical Timeline */}
-              <div className="border-t border-slate-100 pt-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-indigo-600" />
+              <div className="border-t border-[#E9E9E9] pt-6">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#667085] mb-4 flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-[#1F5E91]" />
                   Verified Progress Timeline
                 </h3>
 
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200">
+                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E9E9E9]">
                   {complaint.timeline?.map((step: any, idx: number) => (
                     <div key={idx} className="relative flex items-start gap-4">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm ring-4 ring-white z-10">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1F5E91] text-white shadow-sm ring-4 ring-white z-10">
                         <CheckCircle2 className="h-4 w-4" />
                       </div>
-                      <div className="flex-1 rounded-xl bg-slate-50 border border-slate-100 p-3 text-xs">
+                      <div className="flex-1 rounded-xl bg-[#F5F4F0] border border-[#E9E9E9] p-3.5 text-xs">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900">{step.title}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">
+                          <span className="font-bold text-[#123B5D]">{step.title}</span>
+                          <span className="text-[10px] text-[#667085] font-mono">
                             {new Date(step.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
-                        <p className="text-slate-600 mt-1 leading-snug">{step.description}</p>
+                        <p className="text-[#667085] mt-1 leading-snug">{step.description}</p>
                       </div>
                     </div>
                   ))}
@@ -313,6 +354,8 @@ export default function TrackPage() {
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }
