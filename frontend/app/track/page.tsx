@@ -23,8 +23,10 @@ import {
 import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
 import { trackComplaint, submitClarification } from "../../lib/api";
+import { useTranslation } from "../../context/LanguageContext";
 
 export default function TrackPage() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const initialId = searchParams?.get("id") || "";
 
@@ -49,7 +51,7 @@ export default function TrackPage() {
       setComplaint(data);
     } catch (err: any) {
       setComplaint(null);
-      setErrorMessage(err.message || "Grievance record not found. Please verify the tracking number.");
+      setErrorMessage(err.message || t("trackPage.errorNotFound") || "Grievance record not found. Please verify the tracking number.");
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +74,7 @@ export default function TrackPage() {
     setIsSubmittingClarif(true);
     try {
       await submitClarification(complaint.tracking_number, clarificationAnswer.trim(), "location");
-      setClarifSuccessMsg("Clarification submitted successfully. Your grievance is now dispatched to the operational crew!");
+      setClarifSuccessMsg(t("trackPage.clarificationSuccess") || "Clarification submitted successfully. Your grievance is now dispatched to the operational crew!");
       setClarificationAnswer("");
       // Refresh complaint details
       await fetchComplaint(complaint.tracking_number);
@@ -92,28 +94,28 @@ export default function TrackPage() {
   const getPriorityBadge = (prio: string) => {
     switch (prio) {
       case "P0":
-        return <span className="rounded-md bg-rose-700 px-2.5 py-1 text-xs font-black text-white shadow-sm">P0 Critical Emergency</span>;
+        return <span className="rounded-md bg-rose-700 px-2.5 py-1 text-xs font-black text-white shadow-sm">{t("trackPage.prioP0")}</span>;
       case "P1":
-        return <span className="rounded-md bg-[#F39A32] text-[#123B5D] px-2.5 py-1 text-xs font-black shadow-sm">P1 High Impact</span>;
+        return <span className="rounded-md bg-[#F39A32] text-[#123B5D] px-2.5 py-1 text-xs font-black shadow-sm">{t("trackPage.prioP1")}</span>;
       case "P2":
-        return <span className="rounded-md bg-amber-500 px-2.5 py-1 text-xs font-black text-white shadow-sm">P2 Medium</span>;
+        return <span className="rounded-md bg-amber-500 px-2.5 py-1 text-xs font-black text-white shadow-sm">{t("trackPage.prioP2")}</span>;
       default:
-        return <span className="rounded-md bg-[#1F5E91] px-2.5 py-1 text-xs font-black text-white shadow-sm">{prio} Low</span>;
+        return <span className="rounded-md bg-[#1F5E91] px-2.5 py-1 text-xs font-black text-white shadow-sm">{prio} {t("trackPage.prioLow")}</span>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "RESOLVED":
-        return <span className="rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 text-xs font-black">Resolved</span>;
+        return <span className="rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1.5 text-xs font-black">{t("trackPage.statusResolved")}</span>;
       case "IN_PROGRESS":
-        return <span className="rounded-lg bg-blue-100 text-[#1F5E91] border border-blue-300 px-3 py-1.5 text-xs font-black">In Progress</span>;
+        return <span className="rounded-lg bg-blue-100 text-[#1F5E91] border border-blue-300 px-3 py-1.5 text-xs font-black">{t("trackPage.statusInProgress")}</span>;
       case "ASSIGNED":
-        return <span className="rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 px-3 py-1.5 text-xs font-black">Assigned to Crew</span>;
+        return <span className="rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 px-3 py-1.5 text-xs font-black">{t("trackPage.statusAssigned")}</span>;
       case "NEEDS_CLARIFICATION":
-        return <span className="rounded-lg bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 text-xs font-black animate-pulse">Awaiting Citizen Info</span>;
+        return <span className="rounded-lg bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 text-xs font-black animate-pulse">{t("trackPage.statusNeedsClarification")}</span>;
       case "ESCALATED":
-        return <span className="rounded-lg bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1.5 text-xs font-black">Escalated</span>;
+        return <span className="rounded-lg bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1.5 text-xs font-black">{t("trackPage.statusEscalated")}</span>;
       default:
         return <span className="rounded-lg bg-slate-100 text-slate-800 border border-slate-300 px-3 py-1.5 text-xs font-black">{status}</span>;
     }
@@ -127,15 +129,15 @@ export default function TrackPage() {
       <div className="bg-white border-b border-[#E9E9E9] py-4">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs text-[#667085]">
-            <Link href="/" className="hover:text-[#1F5E91]">Home</Link>
+            <Link href="/" className="hover:text-[#1F5E91]">{t("trackPage.breadcrumbHome")}</Link>
             <span>/</span>
-            <span className="font-bold text-[#1F2933]">Citizen Services</span>
+            <span className="font-bold text-[#1F2933]">{t("trackPage.breadcrumbServices")}</span>
             <span>/</span>
-            <span className="font-bold text-[#1F5E91]">Track Grievance</span>
+            <span className="font-bold text-[#1F5E91]">{t("trackPage.breadcrumbCurrent")}</span>
           </div>
           <div className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#123B5D]">
             <Building2 className="h-4 w-4 text-[#F39A32]" />
-            <span>PMC Civic Redressal</span>
+            <span>{t("trackPage.civicRedressal")}</span>
           </div>
         </div>
       </div>
@@ -149,10 +151,10 @@ export default function TrackPage() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-[#123B5D]">
-                Track Citizen Grievance
+                {t("trackPage.title")}
               </h1>
               <p className="text-xs text-[#667085]">
-                Enter your PMC tracking number to inspect real-time resolution timeline, assigned engineer, and SLA targets.
+                {t("trackPage.subtitle")}
               </p>
             </div>
           </div>
@@ -164,7 +166,7 @@ export default function TrackPage() {
                 type="text"
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
-                placeholder="Enter Tracking ID (e.g. JS-2026-PUN-00101)"
+                placeholder={t("trackPage.inputPlaceholder")}
                 className="w-full rounded-xl border border-[#E9E9E9] pl-10 pr-4 py-3 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] font-mono bg-white"
               />
             </div>
@@ -174,13 +176,13 @@ export default function TrackPage() {
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-7 py-3 text-xs sm:text-sm font-bold text-white shadow transition disabled:opacity-50 active:scale-95"
             >
               <Search className="h-4 w-4" />
-              <span>{isLoading ? "Searching..." : "Track Status"}</span>
+              <span>{isLoading ? t("trackPage.searching") : t("trackPage.trackButton")}</span>
             </button>
           </form>
 
           {/* Quick Demo Shortcuts */}
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#667085]">
-            <span className="font-bold text-[#1F2933]">Sample Tracking IDs:</span>
+            <span className="font-bold text-[#1F2933]">{t("trackPage.sampleIdsLabel")}</span>
             {["JS-2026-PUN-00101", "JS-2026-PUN-00102", "JS-2026-PUN-00111"].map((demoId) => (
               <button
                 key={demoId}
@@ -229,7 +231,7 @@ export default function TrackPage() {
                   </h2>
                 </div>
                 <div className="text-left sm:text-right">
-                  <div className="text-[11px] font-bold text-[#667085] uppercase tracking-wider mb-1">Status</div>
+                  <div className="text-[11px] font-bold text-[#667085] uppercase tracking-wider mb-1">{t("trackPage.statusLabel")}</div>
                   {getStatusBadge(complaint.status)}
                 </div>
               </div>
@@ -238,7 +240,7 @@ export default function TrackPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs mb-6">
                 <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
-                    Assigned Department
+                    {t("trackPage.assignedDepartment")}
                   </span>
                   <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
                     <Building2 className="h-4 w-4 text-[#1F5E91]" />
@@ -248,17 +250,17 @@ export default function TrackPage() {
 
                 <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
-                    Location in Pune
+                    {t("trackPage.locationInPune")}
                   </span>
                   <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm truncate">
                     <MapPin className="h-4 w-4 text-rose-500" />
-                    {complaint.location_name || "Missing (Clarification Required)"}
+                    {complaint.location_name || t("trackPage.missingLocationText")}
                   </span>
                 </div>
 
                 <div className="rounded-xl border border-[#E9E9E9] bg-[#F5F4F0] p-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
-                    SLA Resolution Clock
+                    {t("trackPage.slaClock")}
                   </span>
                   <span className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
                     <Clock className="h-4 w-4 text-[#F39A32]" />
@@ -270,7 +272,7 @@ export default function TrackPage() {
               {/* Raw Grievance Text */}
               <div className="rounded-xl bg-[#F5F4F0] border border-[#E9E9E9] p-4 text-xs text-[#1F2933] leading-relaxed mb-6">
                 <span className="font-bold text-[#667085] block text-[10px] uppercase tracking-wider mb-1">
-                  Citizen&apos;s Original Statement
+                  {t("trackPage.citizenStatementTitle")}
                 </span>
                 &ldquo;{complaint.raw_text}&rdquo;
               </div>
@@ -279,7 +281,7 @@ export default function TrackPage() {
               {complaint.resolution_notes && (
                 <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-900 mb-6">
                   <span className="font-bold block text-emerald-800 mb-1 flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Official Resolution Report
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> {t("trackPage.resolutionReportTitle")}
                   </span>
                   <p>{complaint.resolution_notes}</p>
                 </div>
@@ -290,7 +292,7 @@ export default function TrackPage() {
                 <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 mb-6 text-xs text-amber-950">
                   <div className="flex items-center gap-2 font-bold text-amber-900 mb-2">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <span>Action Required: Municipal Team Needs Clarification</span>
+                    <span>{t("trackPage.actionRequiredTitle")}</span>
                   </div>
                   <p className="text-amber-800 mb-4 leading-relaxed">
                     {complaint.clarifications?.[0]?.question ||
@@ -309,7 +311,7 @@ export default function TrackPage() {
                       required
                       value={clarificationAnswer}
                       onChange={(e) => setClarificationAnswer(e.target.value)}
-                      placeholder="e.g., Baner near Balewadi Phata, opposite Orchid School"
+                      placeholder={t("trackPage.clarificationPlaceholder")}
                       className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs text-[#1F2933] focus:outline-none focus:ring-1 focus:ring-amber-500"
                     />
                     <button
@@ -318,7 +320,7 @@ export default function TrackPage() {
                       className="inline-flex items-center gap-1.5 rounded-lg bg-[#F39A32] hover:bg-[#e08922] text-[#123B5D] font-black px-4 py-2 text-xs shadow transition disabled:opacity-50"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      <span>{isSubmittingClarif ? "Submitting..." : "Submit Clarification"}</span>
+                      <span>{isSubmittingClarif ? t("trackPage.submittingClarification") : t("trackPage.submitClarification")}</span>
                     </button>
                   </form>
                 </div>
@@ -328,7 +330,7 @@ export default function TrackPage() {
               <div className="border-t border-[#E9E9E9] pt-6">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#667085] mb-4 flex items-center gap-1.5">
                   <Clock className="h-4 w-4 text-[#1F5E91]" />
-                  Verified Progress Timeline
+                  {t("trackPage.timelineTitle")}
                 </h3>
 
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E9E9E9]">

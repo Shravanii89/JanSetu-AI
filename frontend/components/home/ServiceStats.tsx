@@ -1,43 +1,46 @@
 "use client";
 
 import React from "react";
-import { Users, FileWarning, BrainCircuit, Building2, TrendingUp, ShieldCheck } from "lucide-react";
+import { Users, FileWarning, BrainCircuit, Building2 } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const ServiceStats: React.FC = () => {
+  const { t } = useTranslation();
+
   const stats = [
     {
-      title: "Citizen Services",
-      count: "50,000+",
-      subtitle: "AI-powered citizen assistance",
+      title: t("stats.citizenTitle"),
+      count: t("stats.citizenCount"),
+      subtitle: t("stats.citizenDesc"),
       icon: Users,
-      badge: "Active Redressal",
+      badge: t("stats.citizenBadge"),
       iconBg: "bg-blue-50 text-[#1F5E91] border-blue-200",
       accent: "#1F5E91",
     },
     {
-      title: "Reported Issues",
-      count: "12,480+",
-      subtitle: "Track civic complaints",
+      title: t("stats.issuesTitle"),
+      count: t("stats.issuesCount"),
+      subtitle: t("stats.issuesDesc"),
       icon: FileWarning,
-      badge: "88% Resolved",
+      badge: t("stats.issuesBadge"),
       iconBg: "bg-amber-50 text-[#F39A32] border-amber-200",
       accent: "#F39A32",
     },
     {
-      title: "AI Services",
-      count: "99.4%",
-      subtitle: "Smart issue classification",
+      title: t("stats.aiTitle"),
+      count: t("stats.aiCount"),
+      subtitle: t("stats.aiDesc"),
       icon: BrainCircuit,
-      badge: "Zero Hallucination",
+      badge: t("stats.aiBadge"),
       iconBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
       accent: "#1F5E91",
     },
     {
-      title: "Active Departments",
-      count: "8 Depts",
-      subtitle: "Connected government departments",
+      title: t("stats.deptsTitle"),
+      count: t("stats.deptsCount"),
+      subtitle: t("stats.deptsDesc"),
       icon: Building2,
-      badge: "PMC Operations",
+      badge: t("stats.deptsBadge"),
       iconBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
       accent: "#123B5D",
     },

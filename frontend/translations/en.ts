@@ -1,0 +1,500 @@
+// English translations for JanSetu AI
+export const en = {
+  // Navigation & Utility Header
+  nav: {
+    govName: "Government of Maharashtra",
+    pmcName: "Pune Municipal Corporation (PMC)",
+    portalTag: "Civic Grievance Redressal",
+    helpline: "Toll Free:",
+    helplineNumber: "1800-1030-222",
+    textSize: "Text:",
+    language: "Language",
+    pmcPortalBadge: "PMC Portal",
+    tagline: "AI-Powered Citizen Service Platform",
+    home: "Home",
+    about: "About",
+    howItWorks: "How It Works",
+    reportIssue: "Report Issue",
+    trackComplaint: "Track Complaint",
+    dashboard: "Dashboard",
+    loginRegister: "Login / Register",
+    officialAccess: "Official Access",
+    official: "Official",
+    preferredLang: "Preferred Language:",
+    citizenHelpline: "Citizen Helpline:",
+  },
+
+  // Hero Section
+  hero: {
+    badge: "Pune Municipal Corporation • AI Citizen Governance Platform",
+    titleWelcome: "Welcome to",
+    titleBrand: "JanSetu AI",
+    subtitle: "Empowering Citizens with Seamless Access to Public Services",
+    searchPlaceholder: "Looking for a service or need help? Search here...",
+    searchButton: "Search",
+    frequentLabel: "Frequent Services:",
+    chipWater: "Water Supply Outage",
+    chipPothole: "Pothole & Road Repair",
+    chipLight: "Street Light Fault",
+    chipGarbage: "Garbage Overflow",
+    chipDrainage: "Drainage Choke",
+    reportButton: "Report a Complaint",
+    trackButton: "Track Complaint",
+  },
+
+  // Announcements ("WHAT'S NEW")
+  announcements: {
+    badge: "WHAT'S NEW",
+    viewMore: "View More",
+    item1: "Report civic issues faster with AI-powered complaint classification and smart routing.",
+    item2: "Pune Municipal Corporation introduces 24x7 automated SLA tracking across all 8 operational departments.",
+    item3: "Submit complaints in Marathi, Hindi, or English — JanSetu AI automatically extracts issue and landmark details.",
+    item4: "Emergency P0 hazards (live wires, main pipeline bursts) are escalated within 15 minutes with high priority dispatch.",
+  },
+
+  // Service Statistics
+  stats: {
+    citizenTitle: "Citizen Services",
+    citizenCount: "50,000+",
+    citizenDesc: "AI-powered citizen assistance",
+    citizenBadge: "Active Redressal",
+
+    issuesTitle: "Reported Issues",
+    issuesCount: "12,480+",
+    issuesDesc: "Track civic complaints",
+    issuesBadge: "88% Resolved",
+
+    aiTitle: "AI Services",
+    aiCount: "99.4%",
+    aiDesc: "Smart issue classification",
+    aiBadge: "Zero Hallucination",
+
+    deptsTitle: "Active Departments",
+    deptsCount: "8 Depts",
+    deptsDesc: "Connected government departments",
+    deptsBadge: "PMC Operations",
+  },
+
+  // Main Services Section & Tabbed Layout
+  services: {
+    tag: "Municipal Redressal Services",
+    title: "JanSetu AI Citizen Services",
+    subtitle: "Select a category to explore public services or test our real-time AI triage engine.",
+    tabs: {
+      citizen: "Citizen",
+      complaints: "Complaints",
+      ai: "AI Services",
+      info: "Information",
+    },
+    accessService: "Access Service",
+
+    // Citizen Tab Services
+    items: {
+      reportCivic: {
+        name: "Report Civic Issue",
+        desc: "File complaints in English, Hindi, or Marathi with automatic AI understanding.",
+        badge: "Citizen Action",
+      },
+      aiAssistant: {
+        name: "AI Complaint Assistant",
+        desc: "Real-time AI entity triage, missing field validation, and SLA estimator.",
+        badge: "AI Powered",
+      },
+      trackStatus: {
+        name: "Track Complaint Status",
+        desc: "Instant live tracking with tracking number without needing official login.",
+        badge: "Public Access",
+      },
+      deptInfo: {
+        name: "Department Information",
+        desc: "Explore 8 PMC municipal departments, field jurisdictions, and SLAs.",
+        badge: "PMC Directory",
+      },
+      citizenHelp: {
+        name: "Citizen Help & FAQs",
+        desc: "Learn about municipal service standards, grievance redressal, and rights.",
+        badge: "Citizen Guide",
+      },
+      smartClassification: {
+        name: "Smart Issue Classification",
+        desc: "Deterministic P0-P3 priority assignment based on hazard risk and duration.",
+        badge: "Autonomous",
+      },
+      // Complaint tab specific items
+      waterIssue: {
+        name: "Water Supply Disruptions",
+        desc: "Report dry pipelines, dirty water supply, low water pressure, and leakages.",
+        badge: "Water Supply",
+      },
+      roadIssue: {
+        name: "Road Potholes & Dividers",
+        desc: "Report damaged asphalt, crater potholes, cave-ins, and divider hazards.",
+        badge: "Road Dept",
+      },
+      powerIssue: {
+        name: "Street Light & Power Hazards",
+        desc: "Report dark streetlights, exposed junction boxes, and snapped live wires.",
+        badge: "Electricity",
+      },
+      garbageIssue: {
+        name: "Garbage & Solid Waste",
+        desc: "Report uncollected garbage bins, open dumping, and dead animal clearance.",
+        badge: "Waste Mgmt",
+      },
+      drainageIssue: {
+        name: "Drainage & Sewage Overflow",
+        desc: "Report choked stormwater drains, sewage spills, and mosquito breeding.",
+        badge: "Public Health",
+      },
+      trackActive: {
+        name: "Track Active Ticket",
+        desc: "Check real-time resolution timeline, assigned engineer, and evidence photos.",
+        badge: "24x7 Live",
+      },
+    },
+
+    // Right Callout Card
+    callout: {
+      tag: "Next-Gen Governance",
+      heading1: "Empowering Citizens.",
+      heading2: "Smarter Government Services.",
+      description: "JanSetu AI is an intelligent citizen service platform that helps citizens report civic issues, access public services, track complaints, and connect with relevant departments through AI-powered technology.",
+      bullet1Title: "AI-Powered Classification:",
+      bullet1Desc: "Understands colloquial Hindi, Marathi, and English without government jargon.",
+      bullet2Title: "Smart Routing:",
+      bullet2Desc: "Automatically identifies responsible departments with zero hallucination.",
+      bullet3Title: "Complaint Tracking:",
+      bullet3Desc: "Real-time transparent timeline with deterministic SLA countdown.",
+      bullet4Title: "Faster Responses & Better Experience:",
+      bullet4Desc: "Emergency P0 hazards are escalated within 15 minutes.",
+      readArchitecture: "Read Governance Architecture",
+      fileGrievance: "File Grievance",
+    },
+
+    // Embedded Interactive Live Demo
+    demo: {
+      tag: "Interactive Live AI Demonstration",
+      title: "Experience JanSetu AI Structuring Unstructured Grievances",
+      subtitle: "Type any real-world civic complaint or click sample scenarios to see real-time AI entity extraction and department routing.",
+      inputLabel: "Citizen Grievance Input (Natural Voice / Text)",
+      placeholder: "Describe a civic problem...",
+      engineNote: "Local Deterministic Engine + Gemini AI API",
+      analyzeButton: "Analyze with AI",
+      analyzing: "Analyzing...",
+      resultTitle: "AI Extraction & Triage Result",
+      pipelineBadge: "JanSetu AI Pipeline",
+      fieldUnderstanding: "UNDERSTANDING",
+      fieldDuration: "DURATION",
+      fieldLocation: "LOCATION",
+      fieldPriority: "PRIORITY",
+      fieldDepartment: "DEPARTMENT",
+      fieldActionability: "ACTIONABILITY",
+      missingLocation: "Missing / Clarify",
+      notSpecified: "Not specified",
+      missingWarningTitle: "Missing Information Detected",
+      footerNote: "Deterministic rules validate all classifications before saving.",
+      submitThisIssue: "Submit This Issue",
+      preset1: "Water Outage (3 Days)",
+      preset2: "P0 Live Wire",
+      preset3: "Karve Road Potholes",
+      preset4: "Hadapsar Garbage",
+    },
+  },
+
+  // Features Section
+  features: {
+    tag: "Platform Capabilities",
+    title: "Why Pune Citizens Rely on JanSetu AI",
+    subtitle: "Engineered to convert everyday civic voice into verified, actionable municipal outcomes.",
+    pmcVerified: "PMC Verified",
+    card1Title: "AI-Powered Assistance",
+    card1Desc: "Get intelligent guidance and support for citizen services with multilingual natural language understanding.",
+    card1Tag: "Intelligent Triage",
+
+    card2Title: "Smart Complaint Routing",
+    card2Desc: "Automatically identify and route complaints to relevant departments with zero hallucination guarantee.",
+    card2Tag: "8 PMC Depts",
+
+    card3Title: "Real-Time Tracking",
+    card3Desc: "Track your complaint status and receive updates with deterministic SLA countdown timers.",
+    card3Tag: "Public ID",
+
+    card4Title: "Citizen-Centric Services",
+    card4Desc: "Access government services through one simple platform designed for every citizen across Maharashtra.",
+    card4Tag: "Accessible",
+  },
+
+  // How It Works Section
+  howItWorks: {
+    tag: "Process Transparency",
+    title: "How JanSetu AI Works",
+    subtitle: "A seamless, four-step journey from citizen grievance to verified municipal resolution.",
+    step1Title: "Report",
+    step1Desc: "Citizen submits an issue or request in their own natural words (English, Hindi, or Marathi).",
+
+    step2Title: "AI Analysis",
+    step2Desc: "JanSetu AI analyzes and categorizes the request, extracts duration, and identifies any missing details.",
+
+    step3Title: "Smart Routing",
+    step3Desc: "The issue is deterministically validated and directed to the appropriate PMC municipal department.",
+
+    step4Title: "Track Progress",
+    step4Desc: "Citizens can track updates, view officer notes, and inspect resolution proof on the public portal.",
+
+    stepCounter: "Step {current} of 4",
+    complete: "Complete",
+    explorePipeline: "Explore full 7-step autonomous governance pipeline",
+  },
+
+  // Call to Action
+  cta: {
+    heading: "Your Voice Matters.",
+    description: "Report issues, access services, and stay connected with your community through JanSetu AI.",
+    reportButton: "Report an Issue",
+    trackButton: "Track Complaint",
+    badgeFree: "100% Free Public Service",
+    badgeSla: "Deterministic SLA Targets",
+    badgeAction: "Verified PMC Field Action",
+  },
+
+  // Footer
+  footer: {
+    tagline: "AI-Powered Citizen Service Platform",
+    desc: "JanSetu AI is an intelligent citizen service platform that bridges everyday citizen narratives with municipal operational workflows for Pune Municipal Corporation (PMC). It automatically structures, prioritizes, and routes complaints with deterministic SLAs.",
+    statementBadge: "Problem Statement PS02 • Government of Maharashtra",
+    address: "PMC Main Building, Shivajinagar, Pune - 411005",
+    helplineText: "Citizen Helpline: 1800-1030-222 (Toll Free 24x7)",
+    emailText: "Support: helpdesk@jansetu.pmc.gov.in",
+    quickLinks: "Quick Links",
+    citizenServices: "Citizen Services",
+    governancePolicies: "Governance & Policies",
+    linkHome: "Home Portal",
+    linkAbout: "About JanSetu AI",
+    linkHowItWorks: "How It Works",
+    linkReport: "Report an Issue",
+    linkTrack: "Track Complaint Status",
+    linkLogin: "Official Access Login",
+    serviceWater: "Water Supply Outages",
+    serviceRoad: "Pothole & Road Repair",
+    serviceLight: "Street Light & Power",
+    serviceWaste: "Solid Waste & Sanitation",
+    serviceHealth: "Public Health & Drainage",
+    serviceEncroachment: "Footpath & Encroachment",
+    policyCharter: "Citizen Charter & SLA Policy",
+    policyPrivacy: "Privacy Policy & Data Security",
+    policyTerms: "Terms of Service & Usage",
+    policyAccessibility: "Accessibility Compliance (GIGW)",
+    policyHyperlink: "Hyperlinking Policy",
+    multilingualBadge: "Multilingual: EN | HI | MR",
+    copyright: "© 2026 JanSetu AI. All Rights Reserved.",
+    initiativeNote: "Developed for Pune Municipal Corporation (PMC) • Smart Governance Initiative",
+    lastReviewed: "Last Reviewed: 11 Sept 2026",
+  },
+
+  // Report Page
+  reportPage: {
+    breadcrumbHome: "Home",
+    breadcrumbServices: "Citizen Services",
+    breadcrumbCurrent: "Report Complaint",
+    govMandate: "Pune Municipal Corporation (PMC)",
+    formTitle: "Report a Civic Complaint",
+    formSubtitle: "Describe your problem in plain language. JanSetu AI handles categorization, priority & department routing.",
+    prefLangLabel: "Preferred Language (Optional)",
+    describeLabel: "Describe the Civic Issue",
+    describeRequired: "*",
+    instantCheck: "Instant AI Check",
+    analyzing: "Analyzing...",
+    textareaPlaceholder: "Example: There has been no water supply in our area for three days and nobody is responding. (You may also type in Marathi or Hindi)",
+    previewTitle: "AI Understanding & Routing Preview",
+    fieldCategory: "Category",
+    fieldDepartment: "Department",
+    fieldPriority: "Priority",
+    fieldDuration: "Duration",
+    missingLocationTitle: "Missing Location Detected:",
+    missingLocationDefault: "Please specify your area or landmark below so crews can locate it.",
+    locationLabel: "Area / Landmark / Location in Pune",
+    locationPlaceholder: "e.g. Baner Road near Balewadi Phata, or Kothrud near Karve Statue",
+    contactHeading: "Citizen Contact Details (For SMS & Resolution Updates)",
+    fullNameLabel: "Your Full Name",
+    fullNamePlaceholder: "e.g. Anand Deshmukh",
+    mobileLabel: "Mobile Number",
+    mobilePlaceholder: "e.g. 9822012345",
+    emailLabel: "Email Address",
+    emailPlaceholder: "e.g. citizen@gmail.com",
+    cancelButton: "Cancel",
+    submitButton: "Submit Grievance to PMC",
+    submittingButton: "Registering Grievance...",
+
+    // Success Screen
+    successBadge: "Grievance Registered Successfully",
+    successTitle: "Ticket Generated & Dispatched",
+    successSubtitle: "Your grievance has been analyzed by JanSetu AI and routed directly to the authorized field maintenance crew.",
+    trackingCardTitle: "Official Tracking Number",
+    trackingCardSave: "Save For Tracking",
+    initialStatus: "Initial Status",
+    assignedDepartment: "Assigned Department",
+    trackOnlineButton: "Track Complaint Online",
+    submitAnotherButton: "Submit Another Grievance",
+    errorRequired: "Please describe your civic complaint before submitting.",
+  },
+
+  // Track Complaint Page
+  trackPage: {
+    breadcrumbHome: "Home",
+    breadcrumbServices: "Citizen Services",
+    breadcrumbCurrent: "Track Grievance",
+    civicRedressal: "PMC Civic Redressal",
+    title: "Track Citizen Grievance",
+    subtitle: "Enter your PMC tracking number to inspect real-time resolution timeline, assigned engineer, and SLA targets.",
+    inputPlaceholder: "Enter Tracking ID (e.g. JS-2026-PUN-00101)",
+    trackButton: "Track Status",
+    searching: "Searching...",
+    sampleIdsLabel: "Sample Tracking IDs:",
+    errorNotFound: "Grievance record not found. Please verify the tracking number.",
+    statusLabel: "Status",
+    assignedDepartment: "Assigned Department",
+    locationInPune: "Location in Pune",
+    slaClock: "SLA Resolution Clock",
+    citizenStatementTitle: "Citizen's Original Statement",
+    resolutionReportTitle: "Official Resolution Report",
+    actionRequiredTitle: "Action Required: Municipal Team Needs Clarification",
+    clarificationPlaceholder: "e.g., Baner near Balewadi Phata, opposite Orchid School",
+    submitClarification: "Submit Clarification",
+    submittingClarification: "Submitting...",
+    timelineTitle: "Verified Progress Timeline",
+    missingLocationText: "Missing (Clarification Required)",
+    clarificationSuccess: "Clarification submitted successfully. Your grievance is now dispatched to the operational crew!",
+
+    // Status Badges
+    statusResolved: "Resolved",
+    statusInProgress: "In Progress",
+    statusAssigned: "Assigned to Crew",
+    statusNeedsClarification: "Awaiting Citizen Info",
+    statusEscalated: "Escalated",
+
+    // Priority Badges
+    prioP0: "P0 Critical Emergency",
+    prioP1: "P1 High Impact",
+    prioP2: "P2 Medium",
+    prioLow: "Low",
+  },
+
+  // About Page
+  aboutPage: {
+    breadcrumbHome: "Home",
+    breadcrumbSection: "Portal Information",
+    breadcrumbCurrent: "About JanSetu AI",
+    mandateBadge: "PMC Governance Mandate",
+    problemStatementBadge: "Problem Statement PS02 • Pune Municipal Corporation",
+    title: "About JanSetu AI",
+    subtitle: "AI-Powered Citizen Grievance Intelligence & Resolution Platform for Pune Municipal Corporation (PMC).",
+    challengeTitle: "The Civic Challenge: Unstructured Grievances vs. Municipal Workflows",
+    challengeP1: "In Pune, citizens report thousands of civic problems daily via social media, WhatsApp, helplines, and municipal ward offices. These complaints are colloquial, emotionally charged, written in Marathi or Hindi, and often missing key operational metadata such as exact landmarks or duration.",
+    challengeP2: "Previously, administrative staff had to manually triage every grievance, determine which of the 8 municipal departments was responsible, and follow up for missing information. JanSetu AI bridges this gap by automatically converting unstructured citizen narratives into validated, actionable operational tickets with deterministic SLA targets.",
+
+    principle1Title: "AI Recommends, Rules Enforce",
+    principle1Desc: "Gemini API extracts understanding, but state machine transitions, SLA deadlines, and database persistence are strictly determined by deterministic Python rules. AI never directly modifies operational database records.",
+
+    principle2Title: "Controlled 8-Department Scope",
+    principle2Desc: "Strict taxonomy adherence guarantees zero AI department hallucinations. Department officers are strictly confined to their department's data via server-side RBAC queries.",
+
+    principle3Title: "Zero Super Admin Governance",
+    principle3Desc: "JanSetu AI adheres to exact 4 roles: Citizen, Municipal Admin, Department Officer, and Collector. Zero arbitrary 'Super Admin' backdoor exists anywhere in the architecture.",
+
+    principle4Title: "Transparent Public Tracking",
+    principle4Desc: "Citizens track complaint progress online with an open tracking ID without having to register or log into an official municipal account.",
+
+    returnHome: "Return to JanSetu AI Home",
+    fileComplaint: "File a Complaint",
+  },
+
+  // How It Works Page
+  howItWorksPage: {
+    breadcrumbHome: "Home",
+    breadcrumbSection: "Portal Architecture",
+    breadcrumbCurrent: "How It Works",
+    slaStandard: "PMC Operational SLA Standard",
+    pipelineBadge: "End-to-End Governance Pipeline",
+    title: "How JanSetu AI Works",
+    subtitle: "From unstructured citizen voice to verified municipal resolution — explore the 7-step autonomous civic grievance pipeline built for Pune Municipal Corporation.",
+
+    step1Title: "Citizen Ingestion & Natural Voice",
+    step1Desc: "Citizens submit grievances in everyday colloquial language (English, Hindi, Marathi, Hinglish). No prior knowledge of government department jargon is required.",
+    step1p1: "Multilingual input processing",
+    step1p2: "Preserves raw citizen statement verbatim",
+    step1p3: "Generates immutable tracking ID (JS-2026-PUN-XXXXX)",
+
+    step2Title: "AI Extraction & Entity Triage",
+    step2Desc: "Gemini API with local deterministic rule fallbacks extracts complaint category, Pune locality, outage duration, and severity markers inside sandboxed prompts.",
+    step2p1: "Prompt injection defense via <citizen_text> sandboxing",
+    step2p2: "Deterministic local fallback when API key is unconfigured",
+    step2p3: "Entity confidence scoring (KNOWN / INFERRED / MISSING)",
+
+    step3Title: "Missing Information Detection",
+    step3Desc: "If crucial location details are absent, the system identifies the gap and triggers an intelligent clarification prompt rather than silently dropping or misrouting the grievance.",
+    step3p1: "Automatic generation of targeted clarification questions",
+    step3p2: "Temporary SLA pause while awaiting citizen response",
+    step3p3: "P0 emergency safety bypass: hazards never blocked by missing metadata",
+
+    step4Title: "Controlled Department Routing",
+    step4Desc: "The ticket is routed strictly to one of the 8 authorized PMC operational departments. AI recommendations are validated against controlled taxonomy with zero hallucination.",
+    step4p1: "Strict 8-department boundary (Water, Road, Electricity, etc.)",
+    step4p2: "Unambiguous mapping with fallback to OTHER_HUMAN_REVIEW",
+    step4p3: "Server-side RBAC isolation ensuring departmental privacy",
+
+    step5Title: "Deterministic Priority & SLA Allocation",
+    step5Desc: "Priority (P0, P1, P2, P3) is derived deterministically from hazard patterns and service disruption duration, strictly decoupled from citizen sentiment.",
+    step5p1: "P0 Critical: 15 min response, 4h resolution target",
+    step5p2: "P1 High: 2h response, 24h resolution target",
+    step5p3: "Automatic SLA breach countdown and warning triggers",
+
+    step6Title: "Field Officer Dispatch & Execution",
+    step6Desc: "Department engineers inspect AI-recommended standard operating procedures (SOPs), execute maintenance repairs, and upload resolution verification notes.",
+    step6p1: "Department-isolated operational work queue",
+    step6p2: "Regulatory audit logging for all status changes",
+    step6p3: "Officer escalation controls to Commissioner or Collector",
+
+    step7Title: "Verified Resolution & Citizen Transparency",
+    step7Desc: "The ticket status moves to RESOLVED, the SLA clock halts, and the citizen receives a transparent verified resolution report on the public tracking portal.",
+    step7p1: "Full progress timeline accessible without login",
+    step7p2: "Resolution notes and timestamped proof",
+    step7p3: "Re-opening option if citizen remains dissatisfied",
+
+    ctaTitle: "Experience JanSetu AI Live",
+    ctaSubtitle: "Report a municipal problem in your own words or track existing grievance progress online without logging in.",
+    ctaReport: "Report a Complaint",
+    ctaTrack: "Track Complaint",
+  },
+
+  // Login Page
+  loginPage: {
+    title: "Official Portal Access",
+    subtitle: "Pune Municipal Corporation • Grievance Administration & Officer Login",
+    identifierLabel: "Employee ID / Official Email",
+    identifierPlaceholder: "e.g. admin@jansetu.local or PMC-ENG-101",
+    passwordLabel: "Password",
+    passwordPlaceholder: "••••••••",
+    signInButton: "Sign In to Official Portal",
+    authenticating: "Authenticating Official...",
+    demoAccountsTitle: "Test / Demo Official Accounts",
+    clickToPrefill: "Click to pre-fill",
+    roleAdmin: "Municipal Admin",
+    roleWater: "Water Officer",
+    roleRoad: "Road Officer",
+    roleCollector: "District Collector",
+    returnHome: "Return to Citizen Portal Home",
+    errorRequired: "Please enter your official email or employee ID and password.",
+  },
+
+  // Official Layouts (Admin, Department, Collector)
+  officialLayout: {
+    adminRole: "MUNICIPAL ADMIN",
+    deptRole: "DEPARTMENT OFFICER",
+    collectorRole: "DISTRICT COLLECTOR",
+    officialAccessPmc: "Official Access • Pune Municipal Corporation",
+    collectorAccess: "Executive Oversight • Pune District Administration",
+    citizenPortalLink: "Citizen Portal",
+  },
+};
+
+export type Translations = typeof en;

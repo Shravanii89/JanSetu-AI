@@ -22,9 +22,11 @@ import {
   Activity,
 } from "lucide-react";
 import { analyzeTextLive } from "../../lib/api";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const ServicesSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"citizen" | "complaints" | "ai" | "info">("citizen");
+  const { t, language } = useTranslation();
 
   // State for the embedded Live AI Triage Demo
   const [demoInput, setDemoInput] = useState(
@@ -50,7 +52,7 @@ export const ServicesSection: React.FC = () => {
     const textToAnalyze = customText || demoInput;
     setIsAnalyzing(true);
     try {
-      const res = await analyzeTextLive(textToAnalyze);
+      const res = await analyzeTextLive(textToAnalyze, language);
       setAiResult(res);
     } catch (err) {
       console.error("AI analysis error:", err);
@@ -60,100 +62,101 @@ export const ServicesSection: React.FC = () => {
   };
 
   const samplePresets = [
-    { label: "Water Outage (3 Days)", text: "There has been no water supply in our area for three days and nobody is responding." },
-    { label: "P0 Live Wire", text: "EMERGENCY: Live 11kV electrical wire has snapped outside Modern College Shivaji Nagar!" },
-    { label: "Karve Road Potholes", text: "Massive 2-feet deep potholes after Nal Stop flyover on Karve Road. Two scooters skidded." },
-    { label: "Hadapsar Garbage", text: "Garbage has not been collected from Hadapsar vegetable market container for 4 days." },
+    { label: t("services.demo.preset1"), text: "There has been no water supply in our area for three days and nobody is responding." },
+    { label: t("services.demo.preset2"), text: "EMERGENCY: Live 11kV electrical wire has snapped outside Modern College Shivaji Nagar!" },
+    { label: t("services.demo.preset3"), text: "Massive 2-feet deep potholes after Nal Stop flyover on Karve Road. Two scooters skidded." },
+    { label: t("services.demo.preset4"), text: "Garbage has not been collected from Hadapsar vegetable market container for 4 days." },
   ];
 
-  // Services list
+  // Citizen Services list
   const citizenServices = [
     {
-      name: "Report Civic Issue",
-      desc: "File complaints in English, Hindi, or Marathi with automatic AI understanding.",
+      name: t("services.items.reportCivic.name"),
+      desc: t("services.items.reportCivic.desc"),
       icon: FileText,
       href: "/report",
-      badge: "Citizen Action",
+      badge: t("services.items.reportCivic.badge"),
     },
     {
-      name: "AI Complaint Assistant",
-      desc: "Real-time AI entity triage, missing field validation, and SLA estimator.",
+      name: t("services.items.aiAssistant.name"),
+      desc: t("services.items.aiAssistant.desc"),
       icon: BrainCircuit,
       href: "/report",
-      badge: "AI Powered",
+      badge: t("services.items.aiAssistant.badge"),
     },
     {
-      name: "Track Complaint Status",
-      desc: "Instant live tracking with tracking number without needing official login.",
+      name: t("services.items.trackStatus.name"),
+      desc: t("services.items.trackStatus.desc"),
       icon: Search,
       href: "/track",
-      badge: "Public Access",
+      badge: t("services.items.trackStatus.badge"),
     },
     {
-      name: "Department Information",
-      desc: "Explore 8 PMC municipal departments, field jurisdictions, and SLAs.",
+      name: t("services.items.deptInfo.name"),
+      desc: t("services.items.deptInfo.desc"),
       icon: Building2,
       href: "/about",
-      badge: "PMC Directory",
+      badge: t("services.items.deptInfo.badge"),
     },
     {
-      name: "Citizen Help & FAQs",
-      desc: "Learn about municipal service standards, grievance redressal, and rights.",
+      name: t("services.items.citizenHelp.name"),
+      desc: t("services.items.citizenHelp.desc"),
       icon: HelpCircle,
       href: "/how-it-works",
-      badge: "Citizen Guide",
+      badge: t("services.items.citizenHelp.badge"),
     },
     {
-      name: "Smart Issue Classification",
-      desc: "Deterministic P0-P3 priority assignment based on hazard risk and duration.",
+      name: t("services.items.smartClassification.name"),
+      desc: t("services.items.smartClassification.desc"),
       icon: Sparkles,
       href: "/how-it-works",
-      badge: "Autonomous",
+      badge: t("services.items.smartClassification.badge"),
     },
   ];
 
+  // Complaints tab specific items
   const complaintServices = [
     {
-      name: "Water Supply Disruptions",
-      desc: "Report dry pipelines, dirty water supply, low water pressure, and leakages.",
+      name: t("services.items.waterIssue.name"),
+      desc: t("services.items.waterIssue.desc"),
       icon: Droplets,
       href: "/report?dept=WATER_SUPPLY",
-      badge: "Water Supply",
+      badge: t("services.items.waterIssue.badge"),
     },
     {
-      name: "Road Potholes & Dividers",
-      desc: "Report damaged asphalt, crater potholes, cave-ins, and divider hazards.",
+      name: t("services.items.roadIssue.name"),
+      desc: t("services.items.roadIssue.desc"),
       icon: FileText,
       href: "/report?dept=ROAD",
-      badge: "Road Dept",
+      badge: t("services.items.roadIssue.badge"),
     },
     {
-      name: "Street Light & Power Hazards",
-      desc: "Report dark streetlights, exposed junction boxes, and snapped live wires.",
+      name: t("services.items.powerIssue.name"),
+      desc: t("services.items.powerIssue.desc"),
       icon: Zap,
       href: "/report?dept=ELECTRICITY",
-      badge: "Electricity",
+      badge: t("services.items.powerIssue.badge"),
     },
     {
-      name: "Garbage & Solid Waste",
-      desc: "Report uncollected garbage bins, open dumping, and dead animal clearance.",
+      name: t("services.items.garbageIssue.name"),
+      desc: t("services.items.garbageIssue.desc"),
       icon: Trash2,
       href: "/report?dept=WASTE_MANAGEMENT",
-      badge: "Waste Mgmt",
+      badge: t("services.items.garbageIssue.badge"),
     },
     {
-      name: "Drainage & Sewage Overflow",
-      desc: "Report choked stormwater drains, sewage spills, and mosquito breeding.",
+      name: t("services.items.drainageIssue.name"),
+      desc: t("services.items.drainageIssue.desc"),
       icon: Activity,
       href: "/report?dept=PUBLIC_HEALTH",
-      badge: "Public Health",
+      badge: t("services.items.drainageIssue.badge"),
     },
     {
-      name: "Track Active Ticket",
-      desc: "Check real-time resolution timeline, assigned engineer, and evidence photos.",
+      name: t("services.items.trackActive.name"),
+      desc: t("services.items.trackActive.desc"),
       icon: Search,
       href: "/track",
-      badge: "24x7 Live",
+      badge: t("services.items.trackActive.badge"),
     },
   ];
 
@@ -167,13 +170,13 @@ export const ServicesSection: React.FC = () => {
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#1F5E91] mb-2">
               <Shield className="h-3.5 w-3.5" />
-              <span>Municipal Redressal Services</span>
+              <span>{t("services.tag")}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1F2933] tracking-tight">
-              JanSetu AI Citizen Services
+              {t("services.title")}
             </h2>
             <p className="mt-1 text-sm text-[#667085]">
-              Select a category to explore public services or test our real-time AI triage engine.
+              {t("services.subtitle")}
             </p>
           </div>
 
@@ -187,7 +190,7 @@ export const ServicesSection: React.FC = () => {
                   : "text-[#1F2933] hover:text-[#1F5E91] hover:bg-white"
               }`}
             >
-              Citizen
+              {t("services.tabs.citizen")}
             </button>
             <button
               onClick={() => setActiveTab("complaints")}
@@ -197,7 +200,7 @@ export const ServicesSection: React.FC = () => {
                   : "text-[#1F2933] hover:text-[#1F5E91] hover:bg-white"
               }`}
             >
-              Complaints
+              {t("services.tabs.complaints")}
             </button>
             <button
               onClick={() => setActiveTab("ai")}
@@ -207,7 +210,7 @@ export const ServicesSection: React.FC = () => {
                   : "text-[#1F2933] hover:text-[#1F5E91] hover:bg-white"
               }`}
             >
-              AI Services
+              {t("services.tabs.ai")}
             </button>
             <button
               onClick={() => setActiveTab("info")}
@@ -217,7 +220,7 @@ export const ServicesSection: React.FC = () => {
                   : "text-[#1F2933] hover:text-[#1F5E91] hover:bg-white"
               }`}
             >
-              Information
+              {t("services.tabs.info")}
             </button>
           </div>
         </div>
@@ -253,7 +256,7 @@ export const ServicesSection: React.FC = () => {
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-[#F5F4F0] flex items-center justify-between text-xs font-bold text-[#1F5E91]">
-                    <span>Access Service</span>
+                    <span>{t("services.accessService")}</span>
                     <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform text-[#F39A32]" />
                   </div>
                 </Link>
@@ -267,34 +270,34 @@ export const ServicesSection: React.FC = () => {
               {/* Highlight Heading */}
               <div className="inline-flex items-center gap-2 text-xs font-black text-[#F39A32] uppercase tracking-wider mb-2">
                 <Sparkles className="h-3.5 w-3.5 fill-[#F39A32]" />
-                <span>Next-Gen Governance</span>
+                <span>{t("services.callout.tag")}</span>
               </div>
 
               <h3 className="text-xl sm:text-2xl font-black text-[#123B5D] leading-snug">
-                Empowering Citizens. <br />
-                <span className="text-[#F39A32]">Smarter Government Services.</span>
+                {t("services.callout.heading1")} <br />
+                <span className="text-[#F39A32]">{t("services.callout.heading2")}</span>
               </h3>
 
               <p className="mt-3 text-xs sm:text-sm text-[#1F2933] leading-relaxed">
-                JanSetu AI is an intelligent citizen service platform that helps citizens report civic issues, access public services, track complaints, and connect with relevant departments through AI-powered technology.
+                {t("services.callout.description")}
               </p>
 
               <div className="mt-4 space-y-2.5 text-xs text-[#1F2933]">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#1F5E91] shrink-0 mt-0.5" />
-                  <span><strong>AI-Powered Classification:</strong> Understands colloquial Hindi, Marathi, and English without government jargon.</span>
+                  <span><strong>{t("services.callout.bullet1Title")}</strong> {t("services.callout.bullet1Desc")}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#1F5E91] shrink-0 mt-0.5" />
-                  <span><strong>Smart Routing:</strong> Automatically identifies responsible departments with zero hallucination.</span>
+                  <span><strong>{t("services.callout.bullet2Title")}</strong> {t("services.callout.bullet2Desc")}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#1F5E91] shrink-0 mt-0.5" />
-                  <span><strong>Complaint Tracking:</strong> Real-time transparent timeline with deterministic SLA countdown.</span>
+                  <span><strong>{t("services.callout.bullet3Title")}</strong> {t("services.callout.bullet3Desc")}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#1F5E91] shrink-0 mt-0.5" />
-                  <span><strong>Faster Responses & Better Experience:</strong> Emergency P0 hazards are escalated within 15 minutes.</span>
+                  <span><strong>{t("services.callout.bullet4Title")}</strong> {t("services.callout.bullet4Desc")}</span>
                 </div>
               </div>
             </div>
@@ -305,14 +308,14 @@ export const ServicesSection: React.FC = () => {
                 href="/how-it-works"
                 className="text-xs font-bold text-[#1F5E91] hover:text-[#123B5D] flex items-center gap-1"
               >
-                <span>Read Governance Architecture</span>
+                <span>{t("services.callout.readArchitecture")}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-[#F39A32]" />
               </Link>
               <Link
                 href="/report"
                 className="rounded-lg bg-[#1F5E91] hover:bg-[#123B5D] text-white px-3.5 py-2 text-xs font-bold shadow-sm transition"
               >
-                File Grievance
+                {t("services.callout.fileGrievance")}
               </Link>
             </div>
           </div>
@@ -324,13 +327,13 @@ export const ServicesSection: React.FC = () => {
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold text-[#F39A32] uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full mb-2">
                 <BrainCircuit className="h-3.5 w-3.5" />
-                <span>Interactive Live AI Demonstration</span>
+                <span>{t("services.demo.tag")}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-white">
-                Experience JanSetu AI Structuring Unstructured Grievances
+                {t("services.demo.title")}
               </h3>
               <p className="text-xs text-white/80 mt-1">
-                Type any real-world civic complaint or click sample scenarios to see real-time AI entity extraction and department routing.
+                {t("services.demo.subtitle")}
               </p>
             </div>
 
@@ -357,20 +360,20 @@ export const ServicesSection: React.FC = () => {
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-white/80 flex items-center gap-1.5 mb-2">
                   <FileText className="h-4 w-4 text-[#F39A32]" />
-                  Citizen Grievance Input (Natural Voice / Text)
+                  {t("services.demo.inputLabel")}
                 </label>
                 <textarea
                   rows={5}
                   value={demoInput}
                   onChange={(e) => setDemoInput(e.target.value)}
                   className="w-full rounded-lg bg-[#0c273e] border border-white/20 p-3 text-xs text-white placeholder-white/40 focus:border-[#F39A32] focus:outline-none focus:ring-1 focus:ring-[#F39A32] font-mono leading-relaxed"
-                  placeholder="Describe a civic problem..."
+                  placeholder={t("services.demo.placeholder")}
                 />
               </div>
 
               <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
                 <span className="text-[10px] text-white/60">
-                  Local Deterministic Engine + Gemini AI API
+                  {t("services.demo.engineNote")}
                 </span>
                 <button
                   onClick={() => handleRunDemo()}
@@ -378,7 +381,7 @@ export const ServicesSection: React.FC = () => {
                   className="inline-flex items-center gap-2 rounded-lg bg-[#F39A32] hover:bg-[#e08922] px-4 py-2 text-xs font-black text-[#123B5D] transition shadow active:scale-95 disabled:opacity-50"
                 >
                   <Sparkles className="h-3.5 w-3.5 fill-[#123B5D]" />
-                  <span>{isAnalyzing ? "Analyzing..." : "Analyze with AI"}</span>
+                  <span>{isAnalyzing ? t("services.demo.analyzing") : t("services.demo.analyzeButton")}</span>
                 </button>
               </div>
             </div>
@@ -388,41 +391,41 @@ export const ServicesSection: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4" /> AI Extraction & Triage Result
+                    <CheckCircle2 className="h-4 w-4" /> {t("services.demo.resultTitle")}
                   </span>
                   <span className="text-[10px] bg-white/10 text-white/80 px-2 py-0.5 rounded font-mono">
-                    {aiResult?.provider || "JanSetu AI Pipeline"}
+                    {aiResult?.provider || t("services.demo.pipelineBadge")}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">UNDERSTANDING</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldUnderstanding")}</span>
                     <span className="font-semibold text-white mt-0.5 block truncate">
                       {aiResult?.summary || "Water Supply Issue"}
                     </span>
                   </div>
 
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">DURATION</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldDuration")}</span>
                     <span className="font-semibold text-[#F39A32] mt-0.5 block">
-                      {aiResult?.extracted_duration || "Not specified"}
+                      {aiResult?.extracted_duration || t("services.demo.notSpecified")}
                     </span>
                   </div>
 
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">LOCATION</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldLocation")}</span>
                     {aiResult?.extracted_location ? (
                       <span className="font-semibold text-emerald-400 mt-0.5 block truncate">
                         {aiResult.extracted_location}
                       </span>
                     ) : (
-                      <span className="font-semibold text-rose-400 mt-0.5 block">Missing / Clarify</span>
+                      <span className="font-semibold text-rose-400 mt-0.5 block">{t("services.demo.missingLocation")}</span>
                     )}
                   </div>
 
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">PRIORITY</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldPriority")}</span>
                     <span
                       className={`font-bold mt-0.5 inline-block px-2 py-0.5 rounded text-[10px] ${
                         aiResult?.priority === "P0"
@@ -432,21 +435,21 @@ export const ServicesSection: React.FC = () => {
                           : "bg-blue-950 text-blue-300 border border-blue-700"
                       }`}
                     >
-                      {aiResult?.priority || "P1 High"}
+                      {aiResult?.priority || "P1"}
                     </span>
                   </div>
 
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">DEPARTMENT</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldDepartment")}</span>
                     <span className="font-semibold text-cyan-300 mt-0.5 block truncate">
                       {aiResult?.department ? aiResult.department.replace("_", " ") : "Water Supply"}
                     </span>
                   </div>
 
                   <div className="rounded-lg bg-white/5 border border-white/10 p-2.5">
-                    <span className="text-[10px] font-bold text-white/60 uppercase block">ACTIONABILITY</span>
+                    <span className="text-[10px] font-bold text-white/60 uppercase block">{t("services.demo.fieldActionability")}</span>
                     <span className="font-semibold text-indigo-300 mt-0.5 block">
-                      {aiResult?.actionability ? aiResult.actionability.replace("_", " ") : "Partially Actionable"}
+                      {aiResult?.actionability ? aiResult.actionability.replace("_", " ") : "Actionable"}
                     </span>
                   </div>
                 </div>
@@ -455,7 +458,7 @@ export const ServicesSection: React.FC = () => {
                 {aiResult?.missing_fields?.length > 0 && (
                   <div className="mt-3 rounded-lg bg-amber-950/60 border border-amber-800 p-2.5 text-xs text-amber-200">
                     <div className="font-bold flex items-center gap-1 text-amber-300 mb-0.5">
-                      <AlertTriangle className="h-3.5 w-3.5" /> Missing Information Detected
+                      <AlertTriangle className="h-3.5 w-3.5" /> {t("services.demo.missingWarningTitle")}
                     </div>
                     <p className="text-[11px] text-amber-200/90">
                       {aiResult.clarification_questions?.[0] || "Which area or landmark is affected?"}
@@ -465,9 +468,9 @@ export const ServicesSection: React.FC = () => {
               </div>
 
               <div className="mt-3 pt-2 border-t border-white/10 text-[11px] text-white/60 flex items-center justify-between">
-                <span>Deterministic rules validate all classifications before saving.</span>
+                <span>{t("services.demo.footerNote")}</span>
                 <Link href="/report" className="text-[#F39A32] font-bold hover:underline flex items-center gap-1">
-                  <span>Submit This Issue</span>
+                  <span>{t("services.demo.submitThisIssue")}</span>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Link>
               </div>

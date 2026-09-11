@@ -2,9 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, FileText, Search, ArrowRight, HeartHandshake } from "lucide-react";
+import { Shield, FileText, Search, ArrowRight } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 export const CTASection: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-r from-[#123B5D] to-[#1F5E91] py-16 sm:py-20 text-white">
       {/* Background Accent Gradients */}
@@ -18,11 +21,11 @@ export const CTASection: React.FC = () => {
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
-          Your Voice Matters.
+          {t("cta.heading")}
         </h2>
 
         <p className="mt-4 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
-          Report issues, access services, and stay connected with your community through JanSetu AI.
+          {t("cta.description")}
         </p>
 
         {/* Buttons */}
@@ -32,7 +35,7 @@ export const CTASection: React.FC = () => {
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#F39A32] hover:bg-[#e08922] text-[#123B5D] px-8 py-4 text-sm font-black shadow-xl hover:shadow-2xl transition-all hover:scale-105 active:scale-[0.98]"
           >
             <FileText className="h-4 w-4" />
-            <span>Report an Issue</span>
+            <span>{t("cta.reportButton")}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
 
@@ -41,7 +44,7 @@ export const CTASection: React.FC = () => {
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-md px-8 py-4 text-sm font-bold shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-[0.98]"
           >
             <Search className="h-4 w-4 text-[#F39A32]" />
-            <span>Track Complaint</span>
+            <span>{t("cta.trackButton")}</span>
           </Link>
         </div>
 
@@ -49,15 +52,15 @@ export const CTASection: React.FC = () => {
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-xs text-white/70">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            100% Free Public Service
+            {t("cta.badgeFree")}
           </span>
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#F39A32]" />
-            Deterministic SLA Targets
+            {t("cta.badgeSla")}
           </span>
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-blue-400" />
-            Verified PMC Field Action
+            {t("cta.badgeAction")}
           </span>
         </div>
       </div>

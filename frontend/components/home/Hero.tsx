@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Sparkles, ArrowRight, Shield, CheckCircle2, ChevronRight } from "lucide-react";
+import { useTranslation } from "../../context/LanguageContext";
 
 interface HeroProps {
   onSearch?: (query: string) => void;
@@ -11,6 +12,7 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useTranslation();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,11 +25,11 @@ export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   };
 
   const quickServices = [
-    { label: "Water Supply Outage", query: "Water supply disruption in my area" },
-    { label: "Pothole & Road Repair", query: "Dangerous deep pothole on main road" },
-    { label: "Street Light Fault", query: "Street lights not working at night" },
-    { label: "Garbage Overflow", query: "Community waste container overflowing" },
-    { label: "Drainage Choke", query: "Sewage water overflowing on street" },
+    { label: t("hero.chipWater"), query: "Water supply disruption in my area" },
+    { label: t("hero.chipPothole"), query: "Dangerous deep pothole on main road" },
+    { label: t("hero.chipLight"), query: "Street lights not working at night" },
+    { label: t("hero.chipGarbage"), query: "Community waste container overflowing" },
+    { label: t("hero.chipDrainage"), query: "Sewage water overflowing on street" },
   ];
 
   return (
@@ -51,17 +53,17 @@ export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
         {/* Government Badge */}
         <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-4 py-1.5 text-xs font-bold text-white shadow-sm mb-6">
           <span className="flex h-2 w-2 rounded-full bg-[#F39A32] animate-pulse" />
-          <span>Pune Municipal Corporation • AI Citizen Governance Platform</span>
+          <span>{t("hero.badge")}</span>
         </div>
 
         {/* Main Title */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white drop-shadow-md">
-          Welcome to <span className="text-[#F39A32]">JanSetu AI</span>
+          {t("hero.titleWelcome")} <span className="text-[#F39A32]">{t("hero.titleBrand")}</span>
         </h1>
 
         {/* Subtitle */}
         <p className="mt-4 text-base sm:text-xl text-white/90 max-w-3xl mx-auto font-normal leading-relaxed drop-shadow">
-          Empowering Citizens with Seamless Access to Public Services
+          {t("hero.subtitle")}
         </p>
 
         {/* Large Portal Search Bar */}
@@ -78,7 +80,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Looking for a service or need help? Search here..."
+              placeholder={t("hero.searchPlaceholder")}
               className="w-full bg-transparent px-3 py-3 text-sm sm:text-base text-[#1F2933] placeholder-[#667085] focus:outline-none font-medium"
             />
 
@@ -86,14 +88,14 @@ export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
               type="submit"
               className="inline-flex items-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-5 sm:px-8 py-3 text-xs sm:text-sm font-bold text-white shadow transition-all active:scale-[0.98] shrink-0"
             >
-              <span>Search</span>
+              <span>{t("hero.searchButton")}</span>
               <ArrowRight className="h-4 w-4 hidden sm:inline" />
             </button>
           </form>
 
           {/* Quick Service Chips */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="text-white/70 font-semibold mr-1">Frequent Services:</span>
+            <span className="text-white/70 font-semibold mr-1">{t("hero.frequentLabel")}</span>
             {quickServices.map((qs, idx) => (
               <button
                 key={idx}
@@ -116,14 +118,14 @@ export const Hero: React.FC<HeroProps> = ({ onSearch }) => {
             className="inline-flex items-center gap-2 rounded-xl bg-[#F39A32] hover:bg-[#e08922] text-[#123B5D] px-6 py-3 text-sm font-black shadow-lg transition-all hover:scale-105"
           >
             <Shield className="h-4 w-4" />
-            <span>Report a Complaint</span>
+            <span>{t("hero.reportButton")}</span>
           </button>
           <button
             onClick={() => router.push("/track")}
             className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-md px-6 py-3 text-sm font-bold shadow transition-all hover:scale-105"
           >
             <Search className="h-4 w-4 text-[#F39A32]" />
-            <span>Track Complaint</span>
+            <span>{t("hero.trackButton")}</span>
           </button>
         </div>
       </div>
