@@ -28,31 +28,32 @@ export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipa
   const getRoleBadge = (role: string) => {
     switch (role) {
       case "MUNICIPAL_ADMIN":
-        return <span className="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">Municipal Admin</span>;
+        return <span className="rounded-md bg-[#F39A32] px-2.5 py-0.5 text-xs font-black text-[#123B5D]">Municipal Admin</span>;
       case "COLLECTOR":
-        return <span className="rounded-md bg-purple-600 px-2 py-0.5 text-xs font-semibold text-white">District Collector</span>;
+        return <span className="rounded-md bg-amber-500 px-2.5 py-0.5 text-xs font-black text-[#123B5D]">District Collector</span>;
       case "DEPARTMENT_OFFICER":
-        return <span className="rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">Department Officer</span>;
+        return <span className="rounded-md bg-[#1F5E91] border border-white/20 px-2.5 py-0.5 text-xs font-bold text-white">Department Officer</span>;
       default:
-        return <span className="rounded-md bg-slate-600 px-2 py-0.5 text-xs font-semibold text-white">{role}</span>;
+        return <span className="rounded-md bg-white/10 border border-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">{role}</span>;
     }
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-900 text-white shadow-md">
+    <header className="sticky top-0 z-40 w-full border-b border-[#E9E9E9] bg-[#123B5D] text-white shadow-sm">
+      <div className="tricolor-stripe" />
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand & Portal Title */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-white">
-              <Shield className="h-5 w-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white border border-white/20">
+              <Shield className="h-4 w-4 text-[#F39A32]" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-white hidden sm:inline">
-              JanSetu<span className="text-indigo-400">.AI</span>
+            <span className="text-lg font-black tracking-tight text-white hidden sm:inline">
+              JanSetu<span className="text-[#F39A32]">.AI</span>
             </span>
           </Link>
-          <span className="text-slate-500 hidden sm:inline">|</span>
-          <span className="text-sm font-medium text-slate-300 truncate">{title}</span>
+          <span className="text-white/40 hidden sm:inline">|</span>
+          <span className="text-sm font-medium text-white/90 truncate">{title}</span>
         </div>
 
         {/* User Info & Actions */}
@@ -60,8 +61,8 @@ export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipa
           {user && (
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col text-right">
-                <span className="text-xs font-semibold text-slate-200">{user.full_name}</span>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-xs font-semibold text-white">{user.full_name}</span>
+                <span className="text-[11px] text-white/70">
                   {user.department_id ? user.department_id.replace("_", " ") : user.email}
                 </span>
               </div>
@@ -72,7 +73,7 @@ export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipa
           {/* Quick Exit to Public */}
           <Link
             href="/"
-            className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-800 transition hidden md:block"
+            className="text-xs font-bold text-white/80 hover:text-white bg-white/10 px-3 py-1.5 rounded-md border border-white/20 transition hidden md:block"
           >
             Public Site
           </Link>
@@ -80,7 +81,7 @@ export const OfficialNavbar: React.FC<{ title?: string }> = ({ title = "Municipa
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 transition"
+            className="flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90 hover:bg-white/20 hover:text-white border border-white/20 transition"
             title="Sign out"
           >
             <LogOut className="h-3.5 w-3.5" />
