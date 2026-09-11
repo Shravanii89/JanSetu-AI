@@ -5,8 +5,9 @@ Handles submission, AI extraction, clarification, and deterministic ticket creat
 
 import json
 import random
+import re
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
 
@@ -154,19 +155,8 @@ class ComplaintService:
             "ai_preview": ai_res,
         }
 
-    async def get_by_tracking_or_id(self, identifier: str, db: AsyncSession) -> Optional[Dict[str, Any]]:
-        """Retrieves full complaint details for public tracking."""
-        query = select(ComplaintModel).where(
-            or_(
-                ComplaintModel.tracking_number == identifier.strip(),
-                ComplaintModel.id == identifier.strip()
-            )
-        )
-        res = await db.execute(query)
-        complaint = res.scalars().first()
-        if not complaint:
-            return None
-
+    async def _format_complaint_dict(self, complaint: ComplaintModel, db: AsyncSession) -> Dict[str, Any]:
+        """Formats a ComplaintModel instance into the complete public tracking payload."""
         # Fetch associated ticket
         t_res = await db.execute(select(TicketModel).where(TicketModel.complaint_id == complaint.id))
         ticket = t_res.scalars().first()
@@ -222,23 +212,48 @@ class ComplaintService:
             timeline.append({"status": "NEEDS_CLARIFICATION", "timestamp": complaint.updated_at.isoformat(), "title": "Clarification Requested", "description": "Additional location details requested from citizen."})
         if ticket and ticket.status in ["ASSIGNED", "IN_PROGRESS", "RESOLVED"]:
             timeline.append({"status": "ASSIGNED", "timestamp": ticket.created_at.isoformat(), "title": "Dispatched to Department", "description": "Department field crew notified."})
+        # Determine effective status (coordinate ticket and complaint state)
+        is_resolved = (
+            (ticket and (ticket.status == "RESOLVED" or ticket.resolved_at is not None))
+            or complaint.status == "RESOLVED"
+            or bool(ticket and ticket.resolution_notes and len(ticket.resolution_notes.strip()) > 0)
+        )
+        effective_status = "RESOLVED" if is_resolved else (ticket.status if ticket else complaint.status)
+
         if ticket and ticket.status in ["IN_PROGRESS", "RESOLVED"]:
             timeline.append({"status": "IN_PROGRESS", "timestamp": ticket.updated_at.isoformat(), "title": "Work In Progress", "description": "Official maintenance activity underway."})
-        if ticket and ticket.status == "RESOLVED":
-            timeline.append({"status": "RESOLVED", "timestamp": ticket.resolved_at.isoformat() if ticket.resolved_at else complaint.updated_at.isoformat(), "title": "Grievance Resolved", "description": ticket.resolution_notes or "Service restored."})
+        if is_resolved:
+            timeline.append({
+                "status": "RESOLVED",
+                "timestamp": (ticket.resolved_at.isoformat() if ticket and ticket.resolved_at else (complaint.updated_at.isoformat() if complaint.updated_at else complaint.created_at.isoformat())),
+                "title": "Grievance Resolved",
+                "description": (ticket.resolution_notes if ticket and ticket.resolution_notes else "Official resolution completed. Service restored.")
+            })
+
+        if is_resolved and sla_data:
+            sla_data["status"] = "RESOLVED"
+
+        resolved_note = (
+            ticket.resolution_notes.strip()
+            if (ticket and ticket.resolution_notes and ticket.resolution_notes.strip())
+            else ("Official resolution completed. Field team maintenance verified." if is_resolved else None)
+        )
 
         return {
             "id": str(complaint.id),
             "tracking_number": complaint.tracking_number,
             "raw_text": complaint.raw_text,
             "citizen_name": complaint.citizen_name,
-            "status": ticket.status if ticket else complaint.status,
+            "citizen_phone": complaint.citizen_phone,
+            "status": effective_status,
             "created_at": complaint.created_at.isoformat(),
+            "updated_at": complaint.updated_at.isoformat() if complaint.updated_at else complaint.created_at.isoformat(),
+            "resolved_at": (ticket.resolved_at.isoformat() if ticket and ticket.resolved_at else (complaint.updated_at.isoformat() if is_resolved else None)),
             "department_id": ticket.department_id if ticket else "OTHER_HUMAN_REVIEW",
             "priority": ticket.priority if ticket else "P2",
             "issue_summary": ticket.issue_summary if ticket else "Civic Complaint",
             "location_name": ticket.location_name if ticket else None,
-            "resolution_notes": ticket.resolution_notes if ticket else None,
+            "resolution_notes": resolved_note,
             "sla": sla_data,
             "clarifications": clarif_list,
             "timeline": timeline,
@@ -251,6 +266,71 @@ class ComplaintService:
                 "explanation": analysis.explanation if analysis else "",
             } if analysis else None,
         }
+
+    async def get_by_tracking_or_id(self, identifier: str, db: AsyncSession) -> Optional[Dict[str, Any]]:
+        """Retrieves full complaint details for public tracking with case-insensitive matching."""
+        ident = identifier.strip()
+        query = select(ComplaintModel).where(
+            or_(
+                func.lower(ComplaintModel.tracking_number) == ident.lower(),
+                func.lower(ComplaintModel.id) == ident.lower()
+            )
+        )
+        res = await db.execute(query)
+        complaint = res.scalars().first()
+        if not complaint:
+            return None
+
+        return await self._format_complaint_dict(complaint, db)
+
+    async def search_by_contact(
+        self, phone: str, name: Optional[str], db: AsyncSession
+    ) -> List[Dict[str, Any]]:
+        """Retrieves all matching complaints by citizen registered phone number and name."""
+        clean_phone = re.sub(r"\D", "", phone or "")
+        phone_suffix = clean_phone[-10:] if len(clean_phone) >= 10 else clean_phone
+        clean_name = " ".join((name or "").strip().lower().split())
+
+        if not phone_suffix:
+            return []
+
+        stmt = select(ComplaintModel).order_by(ComplaintModel.created_at.desc())
+        res = await db.execute(stmt)
+        complaints = res.scalars().all()
+
+        matching = []
+        for comp in complaints:
+            if not comp.citizen_phone:
+                continue
+            comp_phone = re.sub(r"\D", "", comp.citizen_phone)
+            comp_phone_suffix = comp_phone[-10:] if len(comp_phone) >= 10 else comp_phone
+
+            if comp_phone_suffix != phone_suffix:
+                continue
+
+            comp_name = " ".join((comp.citizen_name or "").strip().lower().split())
+            name_matches = False
+            if not clean_name:
+                name_matches = True
+            elif clean_name == comp_name:
+                name_matches = True
+            elif clean_name in comp_name or comp_name in clean_name:
+                name_matches = True
+            else:
+                c_tokens = set(comp_name.split())
+                s_tokens = set(clean_name.split())
+                if c_tokens and s_tokens and (c_tokens.intersection(s_tokens)):
+                    name_matches = True
+
+            if name_matches:
+                matching.append(comp)
+
+        results = []
+        for comp in matching:
+            details = await self._format_complaint_dict(comp, db)
+            if details:
+                results.append(details)
+        return results
 
     async def submit_clarification(self, identifier: str, answer: str, field: str, db: AsyncSession) -> Dict[str, Any]:
         """Receives citizen clarification, updates ticket location, resumes SLA, and transitions status."""

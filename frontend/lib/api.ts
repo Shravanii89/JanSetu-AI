@@ -52,6 +52,13 @@ export async function trackComplaint(idOrTracking: string) {
   return apiClient<any>(`/complaints/${encodeURIComponent(idOrTracking.trim())}`);
 }
 
+export async function searchComplaintsByContact(phone: string, name?: string) {
+  const params = new URLSearchParams();
+  if (phone) params.set("phone", phone.trim());
+  if (name && name.trim()) params.set("name", name.trim());
+  return apiClient<any[]>(`/complaints/search?${params.toString()}`);
+}
+
 export async function submitClarification(
   idOrTracking: string,
   answer: string,
