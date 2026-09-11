@@ -37,6 +37,7 @@ import Footer from "../../components/layout/Footer";
 import { trackComplaint, submitClarification, searchComplaintsByContact } from "../../lib/api";
 import { useTranslation } from "../../context/LanguageContext";
 import { formatDateIST } from "../../lib/date";
+import ComplaintLocationCard from "../../components/location/ComplaintLocationCard";
 
 
 // ─── TYPES & INTERFACES ──────────────────────────────────────────
@@ -61,6 +62,8 @@ interface GrievanceRecord {
   department_id: string;
   department_name: string;
   location_name: string;
+  latitude?: number;
+  longitude?: number;
   ward?: string;
   priority: "P0" | "P1" | "P2" | "P3";
   status: "NEW" | "ASSIGNED" | "IN_PROGRESS" | "NEEDS_CLARIFICATION" | "ESCALATED" | "RESOLVED" | "CLOSED";
@@ -107,6 +110,8 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
     department_id: "ELECTRICITY",
     department_name: "Electricity Department",
     location_name: "Modern College Road, Shivaji Nagar",
+    latitude: 18.5283,
+    longitude: 73.8478,
     ward: "Ward 7 (Shivaji Nagar)",
     priority: "P0",
     status: "RESOLVED",
@@ -175,6 +180,8 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
     department_id: "ROAD",
     department_name: "Road Department",
     location_name: "Nal Stop Flyover, Karve Road",
+    latitude: 18.5074,
+    longitude: 73.8322,
     ward: "Ward 12 (Kothrud)",
     priority: "P2",
     status: "IN_PROGRESS",
@@ -241,6 +248,8 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
     department_id: "WATER_SUPPLY",
     department_name: "Water Supply Department",
     location_name: "Kothrud Depot, Paud Road",
+    latitude: 18.5039,
+    longitude: 73.8077,
     ward: "Ward 12 (Kothrud)",
     priority: "P2",
     status: "RESOLVED",
@@ -309,6 +318,8 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
     department_id: "WASTE_MANAGEMENT",
     department_name: "Waste Management Department",
     location_name: "Hadapsar Sabzi Mandi, Pune-Solapur Road",
+    latitude: 18.5018,
+    longitude: 73.9263,
     ward: "Ward 19 (Hadapsar)",
     priority: "P2",
     status: "IN_PROGRESS",
@@ -363,6 +374,8 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
     department_id: "ROAD",
     department_name: "Road Department",
     location_name: "Near ICC Trade Tower, Senapati Bapat Road",
+    latitude: 18.5362,
+    longitude: 73.8300,
     ward: "Ward 7 (Shivaji Nagar)",
     priority: "P1",
     status: "NEEDS_CLARIFICATION",
@@ -556,7 +569,9 @@ export default function TrackPage() {
       category: data.category || (data.ai_analysis?.extracted_issue ? "Civic Infrastructure" : "General"),
       department_id: data.department_id || "GENERAL",
       department_name: deptName,
-      location_name: data.location_name || "Pune Municipal Jurisdiction",
+      location_name: data.location_name || data.location_text || "Pune Municipal Jurisdiction",
+      latitude: typeof data.latitude === "number" ? data.latitude : (data.latitude ? parseFloat(data.latitude) : undefined),
+      longitude: typeof data.longitude === "number" ? data.longitude : (data.longitude ? parseFloat(data.longitude) : undefined),
       ward: data.ward || "Pune Central",
       priority: (data.priority as any) || "P2",
       status: (status as any) || "IN_PROGRESS",
@@ -1441,6 +1456,17 @@ export default function TrackPage() {
                     Telemetry synced with ward dispatch
                   </span>
                 </div>
+              </div>
+
+              {/* Geotagged Incident Location Map */}
+              <div className="mb-6">
+                <ComplaintLocationCard
+                  locationName={selectedComplaint.location_name}
+                  latitude={selectedComplaint.latitude}
+                  longitude={selectedComplaint.longitude}
+                  ward={selectedComplaint.ward}
+                  trackingNumber={selectedComplaint.tracking_number}
+                />
               </div>
 
               {/* SLA Target Banner */}

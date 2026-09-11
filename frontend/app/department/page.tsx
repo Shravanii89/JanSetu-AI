@@ -27,6 +27,7 @@ import {
   getMe,
 } from "../../lib/api";
 import { formatDateIST } from "../../lib/date";
+import ComplaintLocationCard from "../../components/location/ComplaintLocationCard";
 
 export default function DepartmentPage() {
   const router = useRouter();
@@ -354,6 +355,16 @@ export default function DepartmentPage() {
               </span>
               &ldquo;{selectedTicket.raw_complaint_text}&rdquo;
             </div>
+
+            {/* Complaint Location & Interactive Map */}
+            <ComplaintLocationCard
+              locationName={selectedTicket.location_name}
+              latitude={selectedTicket.latitude}
+              longitude={selectedTicket.longitude}
+              ward={selectedTicket.ward}
+              trackingNumber={selectedTicket.tracking_number}
+              className="mb-6"
+            />
 
             {/* AI Analysis & SOP Guidance */}
             {selectedTicket.ai_analysis && (

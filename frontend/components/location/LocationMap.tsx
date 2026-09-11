@@ -12,9 +12,12 @@ interface LocationMapProps {
   latitude?: number;
   longitude?: number;
   address?: string;
-  onLocationSelect: (lat: number, lng: number) => void;
+  onLocationSelect?: (lat: number, lng: number) => void;
   flyToTrigger?: number; // timestamp to trigger flyTo
   targetZoom?: number;
+  readOnly?: boolean;
+  markerTitle?: string;
+  heightClassName?: string;
 }
 
 // Controller component to handle programmatic map movements and size invalidation
@@ -28,24 +31,58 @@ function MapController({
   flyToTrigger?: number;
 }) {
   const map = useMap();
-  const prevTrigger = useRef<number | undefined>(undefined);
+  const prevCoordsRef = useRef<[number, number] | null>(null);
+  const prevTriggerRef = useRef<number | undefined>(undefined);
 
-  // Invalidate size once map mounts to ensure no gray tiles
+  // Invalidate size once map mounts and after a brief delay to ensure no gray tiles
   useEffect(() => {
+    map.invalidateSize();
     const timer = setTimeout(() => {
       map.invalidateSize();
-    }, 150);
+    }, 200);
     return () => clearTimeout(timer);
   }, [map]);
 
   // Smoothly fly to target when coordinates or flyToTrigger change
   useEffect(() => {
-    if (flyToTrigger && flyToTrigger !== prevTrigger.current) {
-      prevTrigger.current = flyToTrigger;
-      map.flyTo(coords, zoom, {
-        duration: 1.2,
-        easeLinearity: 0.25,
-      });
+    if (!map) return;
+
+    const [lat, lng] = coords;
+    const isDefaultPune =
+      Math.abs(lat - DEFAULT_PUNE_COORDS[0]) < 0.0001 &&
+      Math.abs(lng - DEFAULT_PUNE_COORDS[1]) < 0.0001;
+
+    const coordsChanged =
+      !prevCoordsRef.current ||
+      Math.abs(prevCoordsRef.current[0] - lat) > 0.00001 ||
+      Math.abs(prevCoordsRef.current[1] - lng) > 0.00001;
+
+    const triggerFired = flyToTrigger && flyToTrigger !== prevTriggerRef.current;
+
+    if (triggerFired || (coordsChanged && !isDefaultPune)) {
+      prevCoordsRef.current = [lat, lng];
+      if (flyToTrigger) {
+        prevTriggerRef.current = flyToTrigger;
+      }
+
+      // Invalidate size so container bounding rect is accurate before animating
+      map.invalidateSize({ animate: false });
+
+      // Use street-level zoom (16-17) for detected locations, default zoom for Pune center
+      const targetZoomLevel = isDefaultPune ? (zoom || DEFAULT_ZOOM) : Math.max(zoom || 16, 16);
+
+      try {
+        map.flyTo([lat, lng], targetZoomLevel, {
+          animate: true,
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+      } catch {
+        // Fallback to direct setView if flyTo animation fails
+        map.setView([lat, lng], targetZoomLevel);
+      }
+    } else if (!prevCoordsRef.current) {
+      prevCoordsRef.current = [lat, lng];
     }
   }, [coords, zoom, flyToTrigger, map]);
 
@@ -74,6 +111,9 @@ export default function LocationMap({
   onLocationSelect,
   flyToTrigger,
   targetZoom = 15,
+  readOnly = false,
+  markerTitle,
+  heightClassName,
 }: LocationMapProps) {
   const currentCoords: [number, number] = useMemo(() => {
     if (typeof latitude === "number" && typeof longitude === "number") {
@@ -104,7 +144,7 @@ export default function LocationMap({
   }, []);
 
   return (
-    <div className="w-full h-64 sm:h-72 md:h-80 rounded-xl overflow-hidden border border-[#E9E9E9] relative z-0 shadow-inner bg-[#EBF0F5]">
+    <div className={`w-full ${heightClassName || "h-64 sm:h-72 md:h-80"} rounded-xl overflow-hidden border border-[#E9E9E9] relative z-0 shadow-inner bg-[#EBF0F5]`}>
       <MapContainer
         center={currentCoords}
         zoom={hasSelectedPosition ? targetZoom : DEFAULT_ZOOM}
@@ -127,7 +167,7 @@ export default function LocationMap({
           flyToTrigger={flyToTrigger}
         />
 
-        <MapEvents onMapClick={onLocationSelect} />
+        {onLocationSelect && !readOnly && <MapEvents onMapClick={onLocationSelect} />}
 
         {/* Marker is always shown either at selected position or default Pune position */}
         <Marker
@@ -143,7 +183,7 @@ export default function LocationMap({
             <div className="p-1 min-w-[200px] max-w-[260px] text-xs font-sans">
               <div className="flex items-center gap-1.5 font-black text-[#123B5D] border-b border-[#E9E9E9] pb-1.5 mb-1.5">
                 <span className="h-2 w-2 rounded-full bg-[#F39A32] inline-block"></span>
-                <span>{hasSelectedPosition ? "Selected Location" : "Pune (Default Center)"}</span>
+                <span>{markerTitle || (hasSelectedPosition ? "Complaint Location" : "Pune (Default Center)")}</span>
               </div>
               {address ? (
                 <p className="text-[#1F2933] font-medium leading-tight mb-2">
@@ -151,7 +191,7 @@ export default function LocationMap({
                 </p>
               ) : (
                 <p className="text-[#667085] italic mb-2">
-                  Click anywhere on the map to choose a specific location.
+                  {readOnly ? "Location specified for this complaint." : "Click anywhere on the map to choose a specific location."}
                 </p>
               )}
               <div className="bg-[#F5F4F0] p-1.5 rounded text-[11px] text-[#667085] font-mono flex items-center justify-between border border-[#E9E9E9]">

@@ -4,7 +4,8 @@ Stores citizen grievance intake and multimodal metadata.
 """
 
 import uuid
-from sqlalchemy import Column, String, Text, DateTime
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, Text, Float, DateTime
 from app.db.base import Base
 from app.core.time import get_ist_now
 
@@ -20,6 +21,9 @@ class ComplaintModel(Base):
     preferred_language = Column(String(10), default="en", nullable=False)
     raw_text = Column(Text, nullable=False)
     input_channel = Column(String(20), default="WEB", nullable=False)  # WEB, VOICE, IMAGE
+    location_text = Column(String(255), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     audio_url = Column(String(500), nullable=True)
     image_url = Column(String(500), nullable=True)
     status = Column(String(50), default="NEW", nullable=False, index=True)
