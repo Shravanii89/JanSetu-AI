@@ -4,31 +4,49 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 40 18% 95%; /* #F5F4F0 */
+    --foreground: 210 24% 16%; /* #1F2933 */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 210 24% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 222 47% 18%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 224 76% 48%;
-    --accent-foreground: 210 40% 98%;
+    --popover-foreground: 210 24% 16%;
+    --primary: 206 65% 35%; /* #1F5E91 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 18% 91%;
+    --secondary-foreground: 210 24% 16%;
+    --muted: 40 18% 91%;
+    --muted-foreground: 218 13% 46%; /* #667085 */
+    --accent: 32 90% 57%; /* #F39A32 */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 224 76% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 91%; /* #E9E9E9 */
+    --input: 0 0% 91%;
+    --ring: 206 65% 35%;
     --radius: 0.75rem;
   }
 }
 
 body {
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  color: #1F2933;
+  background-color: #F5F4F0;
   font-feature-settings: "rlig" 1, "calt" 1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.tricolor-stripe {
+  height: 3px;
+  background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+}
+
+.gov-shadow {
+  box-shadow: 0 1px 3px 0 rgba(18, 59, 93, 0.06), 0 1px 2px -1px rgba(18, 59, 93, 0.04);
+}
+
+.gov-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(18, 59, 93, 0.08), 0 2px 4px -2px rgba(18, 59, 93, 0.05);
+}
+
+.gov-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(18, 59, 93, 0.1), 0 4px 6px -4px rgba(18, 59, 93, 0.05);
 }

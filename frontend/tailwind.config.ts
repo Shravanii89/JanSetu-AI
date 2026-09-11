@@ -11,6 +11,15 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        gov: {
+          blue: "#1F5E91",
+          dark: "#123B5D",
+          orange: "#F39A32",
+          bg: "#F5F4F0",
+          gray: "#E9E9E9",
+          text: "#1F2933",
+          muted: "#667085",
+        },
         civic: {
           navy: "hsl(222, 47%, 18%)",
           indigo: "hsl(224, 76%, 48%)",
