@@ -3,9 +3,9 @@ JanSetu AI - Citizen Complaints API Controller
 Handles grievance ingestion, AI understanding, public tracking, and citizen clarification.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 from app.db.session import get_db
 from app.schemas.complaint import ComplaintCreate, ClarificationSubmit
@@ -31,6 +31,18 @@ async def submit_complaint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process complaint: {str(e)}",
         )
+
+
+@router.get("/search")
+async def search_complaints(
+    phone: str = Query(..., description="10-digit registered mobile number"),
+    name: Optional[str] = Query(None, description="Citizen full name"),
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """
+    Public citizen search endpoint by registered contact number and name.
+    """
+    return await complaint_service.search_by_contact(phone=phone, name=name, db=db)
 
 
 @router.get("/{id_or_tracking}")
