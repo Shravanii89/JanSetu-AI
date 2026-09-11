@@ -14,12 +14,13 @@ import {
   Lock,
 } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
+import { useTextSize } from "../../context/TextSizeContext";
 import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const PublicNavbar: React.FC = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [fontSize, setFontSize] = useState<"normal" | "large" | "small">("normal");
+  const { textSize, setTextSize } = useTextSize();
   const { t, languageName, setLanguage } = useTranslation();
 
   const navLinks = [
@@ -64,29 +65,35 @@ export const PublicNavbar: React.FC = () => {
             <div className="flex items-center gap-1 text-[10px] text-white/80">
               <span>{t("nav.textSize")}</span>
               <button
-                onClick={() => setFontSize("small")}
-                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 ${
-                  fontSize === "small" ? "bg-white/20 text-[#F39A32] font-bold" : ""
+                type="button"
+                onClick={() => setTextSize("small")}
+                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 transition active:scale-95 ${
+                  textSize === "small" ? "bg-white/20 text-[#F39A32] font-bold" : ""
                 }`}
                 title="Decrease font size"
+                aria-label="Decrease text size (A-)"
               >
                 A-
               </button>
               <button
-                onClick={() => setFontSize("normal")}
-                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 ${
-                  fontSize === "normal" ? "bg-white/20 text-[#F39A32] font-bold" : ""
+                type="button"
+                onClick={() => setTextSize("normal")}
+                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 transition active:scale-95 ${
+                  textSize === "normal" ? "bg-white/20 text-[#F39A32] font-bold" : ""
                 }`}
                 title="Normal font size"
+                aria-label="Default text size (A)"
               >
                 A
               </button>
               <button
-                onClick={() => setFontSize("large")}
-                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 ${
-                  fontSize === "large" ? "bg-white/20 text-[#F39A32] font-bold" : ""
+                type="button"
+                onClick={() => setTextSize("large")}
+                className={`px-1.5 py-0.5 rounded border border-white/20 hover:bg-white/10 transition active:scale-95 ${
+                  textSize === "large" ? "bg-white/20 text-[#F39A32] font-bold" : ""
                 }`}
                 title="Increase font size"
+                aria-label="Increase text size (A+)"
               >
                 A+
               </button>
@@ -216,6 +223,48 @@ export const PublicNavbar: React.FC = () => {
                 <option value="हिंदी">हिंदी (Hindi)</option>
                 <option value="मराठी">मराठी (Marathi)</option>
               </select>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-[#667085] px-1">
+              <span>{t("nav.textSize")}</span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setTextSize("small")}
+                  className={`px-2 py-0.5 rounded border text-xs font-bold transition ${
+                    textSize === "small"
+                      ? "bg-[#1F5E91] text-white border-[#1F5E91]"
+                      : "bg-[#F5F4F0] border-[#E9E9E9] text-[#1F2933] hover:bg-white"
+                  }`}
+                  aria-label="Decrease font size"
+                >
+                  A-
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTextSize("normal")}
+                  className={`px-2 py-0.5 rounded border text-xs font-bold transition ${
+                    textSize === "normal"
+                      ? "bg-[#1F5E91] text-white border-[#1F5E91]"
+                      : "bg-[#F5F4F0] border-[#E9E9E9] text-[#1F2933] hover:bg-white"
+                  }`}
+                  aria-label="Normal font size"
+                >
+                  A
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTextSize("large")}
+                  className={`px-2 py-0.5 rounded border text-xs font-bold transition ${
+                    textSize === "large"
+                      ? "bg-[#1F5E91] text-white border-[#1F5E91]"
+                      : "bg-[#F5F4F0] border-[#E9E9E9] text-[#1F2933] hover:bg-white"
+                  }`}
+                  aria-label="Increase font size"
+                >
+                  A+
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-xs text-[#667085] px-1">
