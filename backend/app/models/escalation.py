@@ -3,9 +3,9 @@ JanSetu AI - Escalation Record Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class EscalationModel(Base):
@@ -17,4 +17,4 @@ class EscalationModel(Base):
     escalated_to_role = Column(String(50), nullable=False)  # MUNICIPAL_ADMIN, COLLECTOR
     reason = Column(Text, nullable=False)
     status = Column(String(50), default="PENDING", nullable=False)  # PENDING, ACKNOWLEDGED, RESOLVED
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

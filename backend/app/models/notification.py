@@ -3,9 +3,9 @@ JanSetu AI - In-App Notification Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Boolean, DateTime
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class NotificationModel(Base):
@@ -20,4 +20,4 @@ class NotificationModel(Base):
     message = Column(Text, nullable=False)
     notification_type = Column(String(50), default="INFO", nullable=False)  # EMERGENCY, SLA_BREACH, TICKET_ASSIGNED, etc.
     is_read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

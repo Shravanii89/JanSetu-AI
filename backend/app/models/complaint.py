@@ -4,9 +4,9 @@ Stores citizen grievance intake and multimodal metadata.
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class ComplaintModel(Base):
@@ -23,5 +23,5 @@ class ComplaintModel(Base):
     audio_url = Column(String(500), nullable=True)
     image_url = Column(String(500), nullable=True)
     status = Column(String(50), default="NEW", nullable=False, index=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)
+    updated_at = Column(DateTime, default=get_ist_now, onupdate=get_ist_now, nullable=False)

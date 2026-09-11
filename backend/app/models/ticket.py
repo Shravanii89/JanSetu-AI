@@ -3,9 +3,9 @@ JanSetu AI - Operational Service Ticket Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Float, Boolean, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class TicketModel(Base):
@@ -33,5 +33,5 @@ class TicketModel(Base):
     resolution_notes = Column(Text, nullable=True)
     resolved_at = Column(DateTime, nullable=True)
     closed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)
+    updated_at = Column(DateTime, default=get_ist_now, onupdate=get_ist_now, nullable=False)

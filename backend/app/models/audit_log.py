@@ -3,9 +3,9 @@ JanSetu AI - Immutable Regulatory Audit Log Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class AuditLogModel(Base):
@@ -19,4 +19,4 @@ class AuditLogModel(Base):
     actor_id = Column(String(50), nullable=True)
     previous_state = Column(Text, nullable=True)  # JSON string
     new_state = Column(Text, nullable=True)  # JSON string
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False, index=True)

@@ -35,6 +35,7 @@ import {
   getSlaSummary,
 } from "../../lib/api";
 import { DEPARTMENTS } from "../../lib/constants";
+import { formatDateIST } from "../../lib/date";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -81,7 +82,14 @@ export default function AdminPage() {
 
       if (ov) setMetrics(ov);
       if (depts) setDepartments(depts);
-      if (tix) setTickets(tix);
+      if (tix) {
+        const sorted = [...tix].sort((a, b) => {
+          const timeA = new Date(a.created_at || a.submitted_at || 0).getTime();
+          const timeB = new Date(b.created_at || b.submitted_at || 0).getTime();
+          return timeB - timeA;
+        });
+        setTickets(sorted);
+      }
       if (incs) setIncidents(incs);
       if (sla) setSlaSummary(sla);
     } catch (err: any) {
@@ -537,7 +545,7 @@ export default function AdminPage() {
             )}
 
             {/* Ticket Information Details */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs mb-6">
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Department</span>
                 <span className="font-bold text-slate-800 mt-1 block">
@@ -558,6 +566,12 @@ export default function AdminPage() {
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">SLA Status</span>
                 <span className="font-bold text-slate-800 mt-1 block">
                   {selectedTicket.sla?.status || "WITHIN_SLA"}
+                </span>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Filed At (IST)</span>
+                <span className="font-bold text-slate-800 mt-1 block truncate">
+                  {formatDateIST(selectedTicket.created_at)}
                 </span>
               </div>
             </div>
@@ -687,7 +701,7 @@ export default function AdminPage() {
                     {selectedTicket.audit_trail.map((a: any) => (
                       <div key={a.id} className="p-1.5 rounded bg-slate-50 border border-slate-100 flex justify-between">
                         <span>[{a.action}] by {a.actor_type}</span>
-                        <span className="text-slate-400">{new Date(a.created_at).toLocaleTimeString()}</span>
+                        <span className="text-slate-400">{formatDateIST(a.created_at)}</span>
                       </div>
                     ))}
                   </div>

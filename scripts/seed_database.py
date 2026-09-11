@@ -30,6 +30,7 @@ from app.core.security import get_password_hash
 from app.rules.departments import CONTROLLED_DEPARTMENTS
 from app.rules.roles import MUNICIPAL_ADMIN, DEPARTMENT_OFFICER, COLLECTOR, CITIZEN
 from app.rules.sla_policy import calculate_deadlines
+from app.core.time import get_ist_now
 
 
 from sqlalchemy import select, text
@@ -38,15 +39,21 @@ async def seed_data():
     print("[INIT] Initializing database schema...")
     await init_db()
 
+    # Check if already seeded
+    already_seeded = False
     async with AsyncSessionLocal() as session:
-        # Check if already seeded
         existing_depts = await session.execute(select(DepartmentModel))
         if existing_depts.scalars().first():
-            print("[WARN] Database already seeded. Cleaning existing demo records for a fresh state...")
-            async with engine.begin() as conn:
-                for tbl in reversed(Base.metadata.sorted_tables):
-                    await conn.execute(text(f"DROP TABLE IF EXISTS {tbl.name} CASCADE;"))
-                await conn.run_sync(Base.metadata.create_all)
+            already_seeded = True
+
+    if already_seeded:
+        print("[WARN] Database already seeded. Cleaning existing demo records for a fresh state...")
+        async with engine.begin() as conn:
+            for tbl in reversed(Base.metadata.sorted_tables):
+                await conn.execute(text(f"DROP TABLE IF EXISTS {tbl.name} CASCADE;"))
+            await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncSessionLocal() as session:
 
         print("[DEPTS] Seeding 8 Controlled PMC Departments...")
         for dept_def in CONTROLLED_DEPARTMENTS:
@@ -152,7 +159,7 @@ async def seed_data():
                 collector_user = user
 
         print("[INCIDENTS] Seeding Clustered Incidents...")
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = get_ist_now()
 
         inc1 = IncidentModel(
             incident_number="INC-2026-PUN-0001",

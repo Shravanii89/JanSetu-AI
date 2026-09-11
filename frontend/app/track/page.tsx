@@ -36,6 +36,7 @@ import PublicNavbar from "../../components/navigation/PublicNavbar";
 import Footer from "../../components/layout/Footer";
 import { trackComplaint, submitClarification, searchComplaintsByContact } from "../../lib/api";
 import { useTranslation } from "../../context/LanguageContext";
+import { formatDateIST } from "../../lib/date";
 
 
 // ─── TYPES & INTERFACES ──────────────────────────────────────────
@@ -418,18 +419,7 @@ const MOCK_GRIEVANCES: GrievanceRecord[] = [
 
 function formatDate(isoString?: string): string {
   if (!isoString) return "N/A";
-  try {
-    const d = new Date(isoString);
-    return d.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return isoString;
-  }
+  return formatDateIST(isoString);
 }
 
 function getDepartmentIcon(deptId?: string) {

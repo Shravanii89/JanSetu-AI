@@ -10,6 +10,7 @@ from sqlalchemy import select, and_, or_, desc
 from app.models.notification import NotificationModel
 from app.models.user import UserModel
 from app.rules.roles import MUNICIPAL_ADMIN, COLLECTOR, DEPARTMENT_OFFICER
+from app.core.time import format_ist_iso
 
 
 class NotificationService:
@@ -43,7 +44,7 @@ class NotificationService:
                 "notification_type": n.notification_type,
                 "ticket_id": n.ticket_id,
                 "is_read": n.is_read,
-                "created_at": n.created_at.isoformat(),
+                "created_at": format_ist_iso(n.created_at),
             }
             for n in notifications
         ]

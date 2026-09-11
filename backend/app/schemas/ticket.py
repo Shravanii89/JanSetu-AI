@@ -4,7 +4,8 @@ JanSetu AI - Ticket Schemas
 
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
+from app.core.time import format_ist_iso
 
 
 class TicketStatusUpdate(BaseModel):
@@ -60,5 +61,13 @@ class TicketResponse(BaseModel):
     raw_complaint_text: Optional[str] = None
     sla: Optional[Dict[str, Any]] = None
     ai_analysis: Optional[Dict[str, Any]] = None
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
+
+    @field_serializer("resolved_at")
+    def serialize_resolved_at(self, dt: Optional[datetime]) -> Optional[str]:
+        return format_ist_iso(dt) if dt else None
 
     model_config = ConfigDict(from_attributes=True)

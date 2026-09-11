@@ -26,6 +26,7 @@ import {
   getHotspots,
   getMe,
 } from "../../lib/api";
+import { formatDateIST } from "../../lib/date";
 
 export default function CollectorPage() {
   const router = useRouter();
@@ -56,7 +57,14 @@ export default function CollectorPage() {
 
       if (ov) setMetrics(ov);
       if (depts) setDepartments(depts);
-      if (tix) setCriticalTickets(tix);
+      if (tix) {
+        const sorted = [...tix].sort((a, b) => {
+          const timeA = new Date(a.created_at || a.submitted_at || 0).getTime();
+          const timeB = new Date(b.created_at || b.submitted_at || 0).getTime();
+          return timeB - timeA;
+        });
+        setCriticalTickets(sorted);
+      }
       if (incs) setIncidents(incs);
       if (hots) setHotspots(hots);
     } catch (err) {
@@ -195,6 +203,7 @@ export default function CollectorPage() {
                   <th className="py-3 px-4">Tracking ID</th>
                   <th className="py-3 px-4">Issue Narrative</th>
                   <th className="py-3 px-4">Department</th>
+                  <th className="py-3 px-4">Filed (IST)</th>
                   <th className="py-3 px-4">Priority</th>
                   <th className="py-3 px-4">Escalation Justification</th>
                   <th className="py-3 px-4">SLA State</th>
@@ -215,6 +224,7 @@ export default function CollectorPage() {
                         {t.issue_summary}
                       </td>
                       <td className="py-3 px-4 text-slate-400">{t.department_id.replace("_", " ")}</td>
+                      <td className="py-3 px-4 text-slate-400 whitespace-nowrap text-[11px]">{formatDateIST(t.created_at)}</td>
                       <td className="py-3 px-4">
                         <span className="rounded bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
                           {t.priority}

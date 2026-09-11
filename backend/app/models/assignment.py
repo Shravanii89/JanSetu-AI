@@ -3,9 +3,9 @@ JanSetu AI - Ticket Assignment History Model
 """
 
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from app.db.base import Base
+from app.core.time import get_ist_now
 
 
 class AssignmentModel(Base):
@@ -16,4 +16,4 @@ class AssignmentModel(Base):
     officer_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     assigned_by_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=get_ist_now, nullable=False)

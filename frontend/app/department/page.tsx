@@ -26,6 +26,7 @@ import {
   updateTicketStatus,
   getMe,
 } from "../../lib/api";
+import { formatDateIST } from "../../lib/date";
 
 export default function DepartmentPage() {
   const router = useRouter();
@@ -56,7 +57,13 @@ export default function DepartmentPage() {
 
       // Query tickets - backend enforces department isolation!
       const tix = await getTickets();
-      setTickets(tix);
+      // Ensure recent entries are strictly on top for all departments
+      const sorted = [...tix].sort((a, b) => {
+        const timeA = new Date(a.created_at || a.submitted_at || 0).getTime();
+        const timeB = new Date(b.created_at || b.submitted_at || 0).getTime();
+        return timeB - timeA;
+      });
+      setTickets(sorted);
     } catch (err: any) {
       console.error("Department dashboard error:", err);
       router.push("/login");
@@ -180,12 +187,17 @@ export default function DepartmentPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-indigo-600" />
-                Department Action Queue (Ordered by Urgency & SLA Clock)
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-indigo-600" />
+                  Department Action Queue
+                </h2>
+                <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-[10px] font-bold text-indigo-700">
+                  Recent Entries on Top (IST)
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Showing {tickets.length} tickets belonging strictly to {currentUser?.department_id?.replace("_", " ")}
+                Showing {tickets.length} tickets belonging strictly to {currentUser?.department_id?.replace("_", " ")} • Ordered by latest IST filed time
               </p>
             </div>
           </div>
@@ -197,6 +209,7 @@ export default function DepartmentPage() {
                   <th className="py-3 px-4">Tracking ID</th>
                   <th className="py-3 px-4">Issue Summary</th>
                   <th className="py-3 px-4">Location</th>
+                  <th className="py-3 px-4">Filed (IST) ↓</th>
                   <th className="py-3 px-4">Priority</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">SLA State</th>
@@ -206,7 +219,7 @@ export default function DepartmentPage() {
               <tbody className="divide-y divide-slate-100">
                 {tickets.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
+                    <td colSpan={8} className="text-center py-8 text-slate-400">
                       No tickets currently in your department queue.
                     </td>
                   </tr>
@@ -225,6 +238,9 @@ export default function DepartmentPage() {
                       </td>
                       <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                         {t.location_name || <span className="text-rose-500">Missing</span>}
+                      </td>
+                      <td className="py-3 px-4 text-slate-500 whitespace-nowrap text-[11px]">
+                        {formatDateIST(t.created_at)}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
                         {getPriorityBadge(t.priority)}
@@ -302,7 +318,7 @@ export default function DepartmentPage() {
             )}
 
             {/* Quick Properties */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs mb-6">
               <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Current Status</span>
                 <span className="font-bold text-slate-800 mt-1 block">{selectedTicket.status}</span>
@@ -321,6 +337,12 @@ export default function DepartmentPage() {
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Citizen</span>
                 <span className="font-bold text-slate-800 mt-1 block truncate">
                   {selectedTicket.citizen_name || "Resident"}
+                </span>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Filed (IST)</span>
+                <span className="font-bold text-slate-800 mt-1 block truncate">
+                  {formatDateIST(selectedTicket.created_at)}
                 </span>
               </div>
             </div>

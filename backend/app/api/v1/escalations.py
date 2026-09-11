@@ -15,6 +15,7 @@ from app.models.ticket import TicketModel
 from app.models.complaint import ComplaintModel
 from app.models.user import UserModel
 from app.rules.roles import MUNICIPAL_ADMIN, COLLECTOR
+from app.core.time import format_ist_iso
 
 router = APIRouter(prefix="/escalations", tags=["Escalations"])
 
@@ -51,7 +52,7 @@ async def list_escalations(
             "status": esc.status,
             "reason": esc.reason,
             "escalated_to_role": esc.escalated_to_role,
-            "created_at": esc.created_at.isoformat(),
+            "created_at": format_ist_iso(esc.created_at),
         })
 
     return escalations

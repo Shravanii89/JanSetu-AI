@@ -4,7 +4,8 @@ JanSetu AI - Incident Schemas
 
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
+from app.core.time import format_ist_iso
 
 
 class IncidentCreate(BaseModel):
@@ -31,5 +32,17 @@ class IncidentResponse(BaseModel):
     first_reported_at: datetime
     last_activity_at: datetime
     created_at: datetime
+
+    @field_serializer("first_reported_at")
+    def serialize_first_reported_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
+
+    @field_serializer("last_activity_at")
+    def serialize_last_activity_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, dt: datetime) -> str:
+        return format_ist_iso(dt) or dt.isoformat()
 
     model_config = ConfigDict(from_attributes=True)
