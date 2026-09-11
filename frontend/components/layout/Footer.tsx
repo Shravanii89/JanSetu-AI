@@ -12,10 +12,10 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#123B5D] text-white border-t-4 border-[#F39A32]">
       {/* Upper Footer: Main Links & Info */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-9 lg:py-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Col 1 & 2: Branding & Description */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-2.5">
             <div className="flex items-center gap-3">
               <JanSetuLogo variant="icon" size="md" theme="dark" />
               <div>
@@ -32,12 +32,12 @@ export const Footer: React.FC = () => {
               {t("footer.desc")}
             </p>
 
-            <div className="pt-2 flex items-center gap-2 text-xs text-white/70">
+            <div className="pt-1 flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>{t("footer.statementBadge")}</span>
             </div>
 
-            <div className="pt-2 text-xs text-white/60 space-y-1">
+            <div className="pt-1 text-xs text-white/60 space-y-1">
               <p className="flex items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 text-[#F39A32] shrink-0" />
                 {t("footer.address")}
@@ -54,12 +54,12 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Col 3: Quick Links */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-2 flex items-center gap-1.5">
+          <div className="space-y-2.5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-1.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#F39A32]"></span>
               {t("footer.quickLinks")}
             </h4>
-            <ul className="space-y-2 text-xs text-white/75">
+            <ul className="space-y-1.5 text-xs text-white/75">
               <li>
                 <Link href="/" className="hover:text-[#F39A32] transition-colors flex items-center gap-1">
                   <span>{t("footer.linkHome")}</span>
@@ -94,12 +94,12 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Col 4: Services */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-2 flex items-center gap-1.5">
+          <div className="space-y-2.5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-1.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#F39A32]"></span>
               {t("footer.citizenServices")}
             </h4>
-            <ul className="space-y-2 text-xs text-white/75">
+            <ul className="space-y-1.5 text-xs text-white/75">
               <li>
                 <Link href="/report?dept=WATER_SUPPLY" className="hover:text-[#F39A32] transition-colors">
                   {t("footer.serviceWater")}
@@ -134,12 +134,12 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Col 5: Security & Accessibility */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-2 flex items-center gap-1.5">
+          <div className="space-y-2.5">
+            <h4 className="text-sm font-bold uppercase tracking-wider text-white/90 border-b border-white/10 pb-1.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#F39A32]"></span>
               {t("footer.governancePolicies")}
             </h4>
-            <ul className="space-y-2 text-xs text-white/75">
+            <ul className="space-y-1.5 text-xs text-white/75">
               <li>
                 <span className="hover:text-white transition-colors cursor-pointer">
                   {t("footer.policyCharter")}
@@ -167,8 +167,8 @@ export const Footer: React.FC = () => {
               </li>
             </ul>
 
-            <div className="pt-2">
-              <div className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] text-white/90 border border-white/10">
+            <div className="pt-1.5">
+              <div className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-2.5 py-1 text-[11px] text-white/90 border border-white/10">
                 <Globe className="h-3.5 w-3.5 text-[#F39A32]" />
                 <span>{t("footer.multilingualBadge")}</span>
               </div>
@@ -181,8 +181,8 @@ export const Footer: React.FC = () => {
       <div className="tricolor-stripe" />
 
       {/* Bottom Bar: Copyright & Compliance */}
-      <div className="bg-[#0b243a] py-5 text-xs text-white/70">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-[#0b243a] py-3.5 text-xs text-white/70">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <div>
             <p>{t("footer.copyright")}</p>
             <p className="text-[11px] text-white/50 mt-0.5">
