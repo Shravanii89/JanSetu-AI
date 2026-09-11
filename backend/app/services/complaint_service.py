@@ -56,6 +56,7 @@ class ComplaintService:
 
         # Explicitly anchor complaint creation to Indian Standard Time (IST)
         submitted_time = to_ist_naive(getattr(data, "client_timestamp", None)) or get_ist_now()
+        loc_str = data.location_name or data.location_text
 
         # 4. Save Complaint
         complaint = ComplaintModel(
@@ -66,6 +67,9 @@ class ComplaintService:
             preferred_language=data.preferred_language,
             raw_text=data.raw_text,
             input_channel=data.input_channel,
+            location_text=loc_str,
+            latitude=data.latitude,
+            longitude=data.longitude,
             audio_url=data.audio_url,
             image_url=data.image_url,
             status=initial_status,
@@ -269,7 +273,10 @@ class ComplaintService:
             "department_id": ticket.department_id if ticket else "OTHER_HUMAN_REVIEW",
             "priority": ticket.priority if ticket else "P2",
             "issue_summary": ticket.issue_summary if ticket else "Civic Complaint",
-            "location_name": ticket.location_name if ticket else None,
+            "location_name": ticket.location_name if (ticket and ticket.location_name) else getattr(complaint, "location_text", None),
+            "location_text": ticket.location_name if (ticket and ticket.location_name) else getattr(complaint, "location_text", None),
+            "latitude": ticket.latitude if (ticket and ticket.latitude is not None) else getattr(complaint, "latitude", None),
+            "longitude": ticket.longitude if (ticket and ticket.longitude is not None) else getattr(complaint, "longitude", None),
             "resolution_notes": resolved_note,
             "sla": sla_data,
             "clarifications": clarif_list,

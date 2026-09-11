@@ -36,6 +36,7 @@ import {
 } from "../../lib/api";
 import { DEPARTMENTS } from "../../lib/constants";
 import { formatDateIST } from "../../lib/date";
+import ComplaintLocationCard from "../../components/location/ComplaintLocationCard";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -583,6 +584,16 @@ export default function AdminPage() {
               </span>
               &ldquo;{selectedTicket.raw_complaint_text}&rdquo;
             </div>
+
+            {/* Complaint Location & Interactive Map */}
+            <ComplaintLocationCard
+              locationName={selectedTicket.location_name}
+              latitude={selectedTicket.latitude}
+              longitude={selectedTicket.longitude}
+              ward={selectedTicket.ward}
+              trackingNumber={selectedTicket.tracking_number}
+              className="mb-6"
+            />
 
             {/* AI Analysis Explanation */}
             {selectedTicket.ai_analysis && (
