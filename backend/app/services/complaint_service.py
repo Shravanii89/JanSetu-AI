@@ -1,6 +1,312 @@
 """
-JanSetu AI - Business Service: complaint_service
-TODO: Implement domain logic in corresponding phases.
+JanSetu AI - Complaint Lifecycle Service
+Handles submission, AI extraction, clarification, and deterministic ticket creation.
 """
+
+import json
+import random
+from datetime import datetime, timezone
+from typing import Optional, Dict, Any
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, or_, func
+
+from app.models.complaint import ComplaintModel
+from app.models.ticket import TicketModel
+from app.models.ai_analysis import AIAnalysisModel
+from app.models.sla import SLAModel
+from app.models.clarification import ClarificationModel
+from app.models.audit_log import AuditLogModel
+from app.schemas.complaint import ComplaintCreate
+from app.ai.pipeline.orchestrator import orchestrator
+from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
+from app.rules.escalation_rules import check_auto_escalation
+
+
 class ComplaintService:
-    pass
+    async def create_complaint(self, data: ComplaintCreate, db: AsyncSession) -> Dict[str, Any]:
+        """Processes intake, runs AI extraction, and creates deterministic service ticket."""
+        # 1. Generate unique human-readable tracking number
+        count_res = await db.execute(select(func.count(ComplaintModel.id)))
+        total_count = count_res.scalar() or 0
+        tracking_number = f"JS-2026-PUN-{total_count + 101:05d}"
+
+        # 2. Run AI Analysis
+        ai_res = await orchestrator.analyze_complaint(data.raw_text, data.preferred_language)
+
+        # Allow citizen-provided location override
+        final_location = data.location_name or ai_res.get("extracted_location")
+        if data.location_name:
+            ai_res["extracted_location"] = data.location_name
+            ai_res["missing_fields"] = [f for f in ai_res.get("missing_fields", []) if f != "location"]
+            ai_res["actionability"] = "HIGH"
+
+        priority = ai_res["priority"]
+        dept_id = ai_res["department"]
+        is_emergency = (priority == "P0")
+
+        # 3. Determine Initial Ticket Status
+        if is_emergency:
+            initial_status = "ASSIGNED"  # P0 emergency bypass: route immediately
+        elif ai_res.get("missing_fields"):
+            initial_status = "NEEDS_CLARIFICATION"
+        else:
+            initial_status = "ASSIGNED"
+
+        # 4. Save Complaint
+        complaint = ComplaintModel(
+            tracking_number=tracking_number,
+            citizen_name=data.citizen_name,
+            citizen_phone=data.citizen_phone,
+            citizen_email=data.citizen_email,
+            preferred_language=data.preferred_language,
+            raw_text=data.raw_text,
+            input_channel=data.input_channel,
+            audio_url=data.audio_url,
+            image_url=data.image_url,
+            status=initial_status,
+        )
+        db.add(complaint)
+        await db.flush()
+
+        # 5. Save Ticket
+        ticket = TicketModel(
+            complaint_id=complaint.id,
+            department_id=dept_id,
+            status=initial_status,
+            priority=priority,
+            severity=ai_res.get("severity", priority),
+            urgency=ai_res.get("urgency", priority),
+            sentiment_score=ai_res.get("sentiment_score", 0.0),
+            issue_summary=ai_res.get("summary", "Civic Grievance"),
+            category=ai_res.get("complaint_type", "general"),
+            location_name=final_location,
+            ward="Ward 12 (Pune West)",
+            is_emergency=is_emergency,
+            is_escalated=is_emergency,
+            escalation_reason="P0 Emergency Auto-Escalation" if is_emergency else None,
+        )
+        db.add(ticket)
+        await db.flush()
+
+        # 6. Save AI Analysis
+        analysis = AIAnalysisModel(
+            complaint_id=complaint.id,
+            ticket_id=ticket.id,
+            detected_language=ai_res.get("detected_language", data.preferred_language),
+            extracted_issue=ai_res.get("summary", ""),
+            extracted_location=final_location,
+            extracted_duration=ai_res.get("extracted_duration"),
+            recommended_department=dept_id,
+            recommended_priority=priority,
+            recommended_actions=json.dumps(ai_res.get("recommended_actions", [])),
+            actionability_score=1.0 if not ai_res.get("missing_fields") else 0.5,
+            missing_fields=json.dumps(ai_res.get("missing_fields", [])),
+            clarification_questions=json.dumps(ai_res.get("clarification_questions", [])),
+            confidence_score=ai_res.get("confidence", 0.9),
+            confidence_level=ai_res.get("confidence_level", "HIGH"),
+            field_certainties=json.dumps(ai_res.get("field_certainties", {})),
+            citizen_response_draft=ai_res.get("citizen_response", ""),
+            explanation=f"{ai_res.get('priority_reason', '')} | {ai_res.get('department_reason', '')}",
+            raw_model_response=json.dumps(ai_res),
+        )
+        db.add(analysis)
+
+        # 7. Create SLA Record
+        resp_dl, res_dl = calculate_deadlines(priority)
+        sla = SLAModel(
+            ticket_id=ticket.id,
+            priority=priority,
+            response_deadline=resp_dl,
+            resolution_deadline=res_dl,
+            status="PAUSED" if initial_status == "NEEDS_CLARIFICATION" else "WITHIN_SLA",
+            is_paused=(initial_status == "NEEDS_CLARIFICATION"),
+            paused_at=datetime.now(timezone.utc) if initial_status == "NEEDS_CLARIFICATION" else None,
+        )
+        db.add(sla)
+
+        # 8. Create Clarification Request if needed
+        if initial_status == "NEEDS_CLARIFICATION" and ai_res.get("clarification_questions"):
+            clarif = ClarificationModel(
+                complaint_id=complaint.id,
+                ticket_id=ticket.id,
+                sender_type="AI",
+                question=ai_res["clarification_questions"][0],
+                requested_field="location",
+            )
+            db.add(clarif)
+
+        # 9. Audit Log
+        audit = AuditLogModel(
+            entity_name="complaint",
+            entity_id=str(complaint.id),
+            action="CREATED",
+            actor_type="CITIZEN",
+            new_state=json.dumps({"status": initial_status, "priority": priority, "department": dept_id}),
+        )
+        db.add(audit)
+        await db.commit()
+
+        return {
+            "id": str(complaint.id),
+            "tracking_number": tracking_number,
+            "status": initial_status,
+            "ticket_id": str(ticket.id),
+            "ai_preview": ai_res,
+        }
+
+    async def get_by_tracking_or_id(self, identifier: str, db: AsyncSession) -> Optional[Dict[str, Any]]:
+        """Retrieves full complaint details for public tracking."""
+        query = select(ComplaintModel).where(
+            or_(
+                ComplaintModel.tracking_number == identifier.strip(),
+                ComplaintModel.id == identifier.strip()
+            )
+        )
+        res = await db.execute(query)
+        complaint = res.scalars().first()
+        if not complaint:
+            return None
+
+        # Fetch associated ticket
+        t_res = await db.execute(select(TicketModel).where(TicketModel.complaint_id == complaint.id))
+        ticket = t_res.scalars().first()
+
+        # Fetch AI analysis
+        ai_res = await db.execute(select(AIAnalysisModel).where(AIAnalysisModel.complaint_id == complaint.id))
+        analysis = ai_res.scalars().first()
+
+        # Fetch SLA
+        sla_data = None
+        if ticket:
+            s_res = await db.execute(select(SLAModel).where(SLAModel.ticket_id == ticket.id))
+            sla = s_res.scalars().first()
+            if sla:
+                current_sla_status = evaluate_sla_status(
+                    sla.priority,
+                    sla.created_at,
+                    sla.resolved_at,
+                    sla.is_paused
+                )
+                sla_data = {
+                    "priority": sla.priority,
+                    "response_deadline": sla.response_deadline.isoformat(),
+                    "resolution_deadline": sla.resolution_deadline.isoformat(),
+                    "status": current_sla_status,
+                    "is_paused": sla.is_paused,
+                }
+
+        # Fetch clarification questions
+        c_res = await db.execute(
+            select(ClarificationModel).where(ClarificationModel.complaint_id == complaint.id).order_by(ClarificationModel.created_at.desc())
+        )
+        clarifications = c_res.scalars().all()
+
+        clarif_list = [
+            {
+                "id": str(c.id),
+                "sender_type": c.sender_type,
+                "question": c.question,
+                "answer": c.answer,
+                "answered_at": c.answered_at.isoformat() if c.answered_at else None,
+            }
+            for c in clarifications
+        ]
+
+        # Construct public timeline
+        timeline = [
+            {"status": "NEW", "timestamp": complaint.created_at.isoformat(), "title": "Grievance Submitted", "description": "Received via citizen portal."}
+        ]
+        if analysis:
+            timeline.append({"status": "AI_ANALYZED", "timestamp": analysis.created_at.isoformat(), "title": "AI Triaged & Classified", "description": f"Routed to {ticket.department_id if ticket else 'department'}."})
+        if ticket and ticket.status == "NEEDS_CLARIFICATION":
+            timeline.append({"status": "NEEDS_CLARIFICATION", "timestamp": complaint.updated_at.isoformat(), "title": "Clarification Requested", "description": "Additional location details requested from citizen."})
+        if ticket and ticket.status in ["ASSIGNED", "IN_PROGRESS", "RESOLVED"]:
+            timeline.append({"status": "ASSIGNED", "timestamp": ticket.created_at.isoformat(), "title": "Dispatched to Department", "description": "Department field crew notified."})
+        if ticket and ticket.status in ["IN_PROGRESS", "RESOLVED"]:
+            timeline.append({"status": "IN_PROGRESS", "timestamp": ticket.updated_at.isoformat(), "title": "Work In Progress", "description": "Official maintenance activity underway."})
+        if ticket and ticket.status == "RESOLVED":
+            timeline.append({"status": "RESOLVED", "timestamp": ticket.resolved_at.isoformat() if ticket.resolved_at else complaint.updated_at.isoformat(), "title": "Grievance Resolved", "description": ticket.resolution_notes or "Service restored."})
+
+        return {
+            "id": str(complaint.id),
+            "tracking_number": complaint.tracking_number,
+            "raw_text": complaint.raw_text,
+            "citizen_name": complaint.citizen_name,
+            "status": ticket.status if ticket else complaint.status,
+            "created_at": complaint.created_at.isoformat(),
+            "department_id": ticket.department_id if ticket else "OTHER_HUMAN_REVIEW",
+            "priority": ticket.priority if ticket else "P2",
+            "issue_summary": ticket.issue_summary if ticket else "Civic Complaint",
+            "location_name": ticket.location_name if ticket else None,
+            "resolution_notes": ticket.resolution_notes if ticket else None,
+            "sla": sla_data,
+            "clarifications": clarif_list,
+            "timeline": timeline,
+            "ai_analysis": {
+                "extracted_issue": analysis.extracted_issue if analysis else "",
+                "confidence_score": analysis.confidence_score if analysis else 0.9,
+                "confidence_level": analysis.confidence_level if analysis else "HIGH",
+                "recommended_actions": json.loads(analysis.recommended_actions) if analysis else [],
+                "citizen_response_draft": analysis.citizen_response_draft if analysis else "",
+                "explanation": analysis.explanation if analysis else "",
+            } if analysis else None,
+        }
+
+    async def submit_clarification(self, identifier: str, answer: str, field: str, db: AsyncSession) -> Dict[str, Any]:
+        """Receives citizen clarification, updates ticket location, resumes SLA, and transitions status."""
+        query = select(ComplaintModel).where(
+            or_(
+                ComplaintModel.tracking_number == identifier.strip(),
+                ComplaintModel.id == identifier.strip()
+            )
+        )
+        res = await db.execute(query)
+        complaint = res.scalars().first()
+        if not complaint:
+            raise ValueError("Complaint not found")
+
+        # Update latest clarification record
+        c_query = select(ClarificationModel).where(
+            ClarificationModel.complaint_id == complaint.id,
+            ClarificationModel.answer.is_(None)
+        ).order_by(ClarificationModel.created_at.desc())
+        c_res = await db.execute(c_query)
+        clarif = c_res.scalars().first()
+        if clarif:
+            clarif.answer = answer.strip()
+            clarif.answered_at = datetime.now(timezone.utc)
+
+        # Update Ticket
+        t_res = await db.execute(select(TicketModel).where(TicketModel.complaint_id == complaint.id))
+        ticket = t_res.scalars().first()
+        if ticket:
+            ticket.location_name = answer.strip()
+            ticket.status = "ASSIGNED"
+            ticket.updated_at = datetime.now(timezone.utc)
+
+            # Resume SLA
+            s_res = await db.execute(select(SLAModel).where(SLAModel.ticket_id == ticket.id))
+            sla = s_res.scalars().first()
+            if sla and sla.is_paused:
+                sla.is_paused = False
+                sla.status = "WITHIN_SLA"
+                sla.updated_at = datetime.now(timezone.utc)
+
+        complaint.status = "ASSIGNED"
+        complaint.updated_at = datetime.now(timezone.utc)
+
+        # Audit
+        audit = AuditLogModel(
+            entity_name="complaint",
+            entity_id=str(complaint.id),
+            action="CLARIFIED",
+            actor_type="CITIZEN",
+            new_state=json.dumps({"location": answer.strip(), "status": "ASSIGNED"}),
+        )
+        db.add(audit)
+        await db.commit()
+
+        return {"status": "ok", "message": "Clarification processed successfully", "new_status": "ASSIGNED"}
+
+
+complaint_service = ComplaintService()

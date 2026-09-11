@@ -1,5 +1,7 @@
 """
-JanSetu AI - Declarative Base Class
+JanSetu AI - Declarative Base Export
 """
-class Base:
-    pass
+
+from app.db.session import Base
+
+__all__ = ["Base"]

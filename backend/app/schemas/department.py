@@ -1,8 +1,19 @@
 """
-JanSetu AI - DTO Schema: Department
-TODO: Implement Pydantic v2 schemas in Phase 2/3.
+JanSetu AI - Department Schemas
 """
+
+from typing import Optional
 from pydantic import BaseModel
 
-class DepartmentBaseSchema(BaseModel):
-    pass
+
+class DepartmentResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    contact_email: Optional[str] = None
+    is_active: bool
+    open_tickets_count: int = 0
+    sla_compliance_pct: float = 100.0
+
+    class Config:
+        from_attributes = True

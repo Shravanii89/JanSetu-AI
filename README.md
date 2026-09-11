@@ -135,9 +135,6 @@ cp .env.example .env
 # Run FastAPI development server
 uvicorn app.main:app --reload --port 8000
 ```
-API documentation will be available at `http://localhost:8000/docs`.  
-Health check endpoint: `http://localhost:8000/api/v1/health`.
-
 ### 6.3 Frontend Setup
 ```bash
 # Navigate to frontend directory
@@ -153,6 +150,40 @@ cp .env.example .env.local
 npm run dev
 ```
 Open `http://localhost:3000` in your browser.
+
+### 6.4 Database Initialization & Seeding
+JanSetu AI includes an automatic zero-configuration SQLite fallback (`jansetu_dev.db`), or can connect to PostgreSQL/Supabase via `DATABASE_URL`.
+
+To seed all 8 departments, official demo accounts, realistic Pune grievances, clustered incidents, and SLAs:
+```bash
+python scripts/seed_database.py
+```
+
+### 6.5 Development Demo Accounts
+The unified login portal at `/login` provides a one-click demo credentials pre-fill helper:
+
+| Role | Email / Employee ID | Password | Destination Dashboard | Scope |
+| :--- | :--- | :--- | :--- | :--- |
+| **Municipal Admin** | `admin@jansetu.local` | `admin123` | `/admin` | City-wide 8-dept command center, re-routing |
+| **Water Officer** | `water.officer@jansetu.local` | `officer123` | `/department` | Scoped strictly to Water Supply Department |
+| **Road Officer** | `road.officer@jansetu.local` | `officer123` | `/department` | Scoped strictly to Road Department |
+| **Collector** | `collector@jansetu.local` | `collector123` | `/collector` | High-level intelligence, P0s, incidents, breaches |
+| **Citizen** | `citizen@jansetu.local` | `citizen123` | `/track` | Public grievance intake & timeline tracking |
+
+### 6.6 End-to-End Automated Verification
+Verify all 4 core user journeys against the running backend with a single command:
+```bash
+python scripts/test_live_flows.py
+```
+Run the full backend test suite:
+```bash
+pytest backend/tests -v
+```
+Run frontend typecheck and production build:
+```bash
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+```
 
 ---
 

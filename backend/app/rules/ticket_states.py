@@ -1,5 +1,43 @@
 """
-JanSetu AI - Deterministic Rule Engine: ticket_states
-TODO: Implement pure deterministic rule logic in Phase 6/7.
+JanSetu AI - Deterministic Ticket Lifecycle States & Allowed Transitions
 """
-# Pure Python rules with zero database side-effects
+
+from typing import Dict, List
+
+NEW = "NEW"
+AI_ANALYZED = "AI_ANALYZED"
+NEEDS_CLARIFICATION = "NEEDS_CLARIFICATION"
+AWAITING_CITIZEN = "AWAITING_CITIZEN"
+READY_FOR_ROUTING = "READY_FOR_ROUTING"
+ASSIGNED = "ASSIGNED"
+IN_PROGRESS = "IN_PROGRESS"
+RESOLVED = "RESOLVED"
+CLOSED = "CLOSED"
+ESCALATED = "ESCALATED"
+SLA_BREACHED = "SLA_BREACHED"
+REJECTED = "REJECTED"
+DUPLICATE = "DUPLICATE"
+SPAM = "SPAM"
+
+ALLOWED_TRANSITIONS: Dict[str, List[str]] = {
+    NEW: [AI_ANALYZED, NEEDS_CLARIFICATION, READY_FOR_ROUTING, REJECTED, SPAM],
+    AI_ANALYZED: [NEEDS_CLARIFICATION, AWAITING_CITIZEN, READY_FOR_ROUTING, ASSIGNED, ESCALATED, DUPLICATE, SPAM],
+    NEEDS_CLARIFICATION: [AWAITING_CITIZEN, READY_FOR_ROUTING, REJECTED],
+    AWAITING_CITIZEN: [READY_FOR_ROUTING, NEEDS_CLARIFICATION, REJECTED],
+    READY_FOR_ROUTING: [ASSIGNED, IN_PROGRESS, ESCALATED],
+    ASSIGNED: [IN_PROGRESS, ESCALATED, RESOLVED],
+    IN_PROGRESS: [RESOLVED, ESCALATED, NEEDS_CLARIFICATION],
+    ESCALATED: [IN_PROGRESS, RESOLVED, CLOSED],
+    RESOLVED: [CLOSED, IN_PROGRESS],  # Re-opened if citizen dissatisfied
+    CLOSED: [],
+    REJECTED: [],
+    DUPLICATE: [],
+    SPAM: [],
+}
+
+
+def can_transition(from_state: str, to_state: str) -> bool:
+    """Validates state transitions deterministically."""
+    if from_state == to_state:
+        return True
+    return to_state in ALLOWED_TRANSITIONS.get(from_state, [])
