@@ -20,6 +20,57 @@ import { useAuth } from "../../hooks/useAuth";
 import { useTranslation } from "../../context/LanguageContext";
 import JanSetuLogo from "../../components/branding/JanSetuLogo";
 
+const DEPARTMENT_OFFICERS = [
+  {
+    id: "WATER_SUPPLY",
+    name: "Water Supply",
+    email: "water.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "ELECTRICITY",
+    name: "Electricity",
+    email: "electricity.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "PUBLIC_HEALTH",
+    name: "Public Health",
+    email: "health.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "WASTE_MANAGEMENT",
+    name: "Waste Management",
+    email: "waste.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "PUBLIC_PROPERTY_MANAGEMENT",
+    name: "Public Property Management",
+    email: "property.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "GARDEN",
+    name: "Garden",
+    email: "garden.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "ROAD",
+    name: "Road",
+    email: "road.officer@jansetu.local",
+    password: "officer123",
+  },
+  {
+    id: "ENCROACHMENT",
+    name: "Encroachment",
+    email: "encroachment.officer@jansetu.local",
+    password: "officer123",
+  },
+];
+
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,6 +81,7 @@ function LoginFormContent() {
   const { login } = useAuth();
 
   const [portalType, setPortalType] = useState<"CITIZEN" | "OFFICIAL">("CITIZEN");
+  const [selectedDeptId, setSelectedDeptId] = useState("WATER_SUPPLY");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -266,58 +318,72 @@ function LoginFormContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => fillDemoAccount("admin@jansetu.local", "admin123", "OFFICIAL")}
-                className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
-              >
-                <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
-                  Municipal Admin
-                </span>
-                <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
-                  admin@jansetu.local
-                </span>
-              </button>
+            <div className="space-y-2">
+              {/* Top Row: Municipal Admin & District Collector */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => fillDemoAccount("admin@jansetu.local", "admin123", "OFFICIAL")}
+                  className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
+                >
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
+                    Municipal Admin
+                  </span>
+                  <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
+                    admin@jansetu.local
+                  </span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => fillDemoAccount("water.officer@jansetu.local", "officer123", "OFFICIAL")}
-                className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
-              >
-                <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
-                  Water Officer
-                </span>
-                <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
-                  water.officer@jansetu.local
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoAccount("collector@jansetu.demo", "collector123", "OFFICIAL")}
+                  className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
+                >
+                  <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
+                    District Collector
+                  </span>
+                  <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
+                    collector@jansetu.demo
+                  </span>
+                </button>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => fillDemoAccount("road.officer@jansetu.local", "officer123", "OFFICIAL")}
-                className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
-              >
-                <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
-                  Road Officer
-                </span>
-                <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
-                  road.officer@jansetu.local
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillDemoAccount("collector@jansetu.demo", "collector123", "OFFICIAL")}
-                className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] hover:bg-[#1F5E91] hover:text-white group p-2 text-left transition"
-              >
-                <span className="font-bold text-[#1F2933] group-hover:text-white block text-[11px]">
-                  District Collector
-                </span>
-                <span className="text-[10px] text-[#667085] group-hover:text-white/80 font-mono block truncate">
-                  collector@jansetu.demo
-                </span>
-              </button>
+              {/* Department Officer Selector */}
+              <div className="rounded-lg border border-[#E9E9E9] bg-[#F5F4F0] p-2 text-xs">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-[#1F2933] text-[11px]">
+                    Department Officer
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const dept = DEPARTMENT_OFFICERS.find((d) => d.id === selectedDeptId) || DEPARTMENT_OFFICERS[0];
+                      fillDemoAccount(dept.email, dept.password, "OFFICIAL");
+                    }}
+                    className="text-[10px] font-bold text-[#1F5E91] hover:underline bg-white border border-[#E9E9E9] px-2 py-0.5 rounded shadow-xs"
+                  >
+                    Click to prefill
+                  </button>
+                </div>
+                <select
+                  value={selectedDeptId}
+                  onChange={(e) => {
+                    const newDeptId = e.target.value;
+                    setSelectedDeptId(newDeptId);
+                    const dept = DEPARTMENT_OFFICERS.find((d) => d.id === newDeptId);
+                    if (dept) {
+                      fillDemoAccount(dept.email, dept.password, "OFFICIAL");
+                    }
+                  }}
+                  className="w-full rounded-md border border-[#E9E9E9] bg-white px-2 py-1.5 text-[11px] font-medium text-[#1F2933] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] cursor-pointer"
+                >
+                  {DEPARTMENT_OFFICERS.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name} ({dept.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
         </div>
