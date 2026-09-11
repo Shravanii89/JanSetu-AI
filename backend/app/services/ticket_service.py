@@ -52,6 +52,8 @@ class TicketService:
         # Server-side department isolation
         if current_user.role == DEPARTMENT_OFFICER:
             conditions.append(TicketModel.department_id == current_user.department_id)
+        elif current_user.role == MUNICIPAL_ADMIN and current_user.department_id:
+            conditions.append(TicketModel.department_id == current_user.department_id)
         elif department_id:
             conditions.append(TicketModel.department_id == department_id)
 

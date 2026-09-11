@@ -5,7 +5,7 @@ Stores citizen grievance intake and multimodal metadata.
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Text, Float, DateTime
+from sqlalchemy import Column, String, Text, Float, DateTime, ForeignKey
 from app.db.base import Base
 from app.core.time import get_ist_now
 
@@ -15,6 +15,7 @@ class ComplaintModel(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tracking_number = Column(String(50), unique=True, nullable=False, index=True)  # e.g., 'JS-2026-PUN-00123'
+    citizen_id = Column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     citizen_name = Column(String(150), nullable=True)
     citizen_phone = Column(String(20), nullable=True)
     citizen_email = Column(String(150), nullable=True)

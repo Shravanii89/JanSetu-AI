@@ -6,7 +6,7 @@ Handles submission, AI extraction, clarification, and deterministic ticket creat
 import json
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
@@ -17,15 +17,18 @@ from app.models.ai_analysis import AIAnalysisModel
 from app.models.sla import SLAModel
 from app.models.clarification import ClarificationModel
 from app.models.audit_log import AuditLogModel
+from app.models.complaint_update import ComplaintUpdateModel
+from app.models.complaint_draft import ComplaintDraftModel
 from app.schemas.complaint import ComplaintCreate
 from app.core.time import get_ist_now, format_ist_iso, to_ist_naive
 from app.ai.pipeline.orchestrator import orchestrator
 from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
 from app.rules.escalation_rules import check_auto_escalation
+from app.services.contribution_service import contribution_service
 
 
 class ComplaintService:
-    async def create_complaint(self, data: ComplaintCreate, db: AsyncSession) -> Dict[str, Any]:
+    async def create_complaint(self, data: ComplaintCreate, db: AsyncSession, citizen_id: Optional[str] = None) -> Dict[str, Any]:
         """Processes intake, runs AI extraction, and creates deterministic service ticket."""
         # 1. Generate unique human-readable tracking number
         count_res = await db.execute(select(func.count(ComplaintModel.id)))
@@ -61,6 +64,7 @@ class ComplaintService:
         # 4. Save Complaint
         complaint = ComplaintModel(
             tracking_number=tracking_number,
+            citizen_id=citizen_id,
             citizen_name=data.citizen_name,
             citizen_phone=data.citizen_phone,
             citizen_email=data.citizen_email,
@@ -78,6 +82,29 @@ class ComplaintService:
         )
         db.add(complaint)
         await db.flush()
+
+        # Record initial citizen timeline update
+        update_log = ComplaintUpdateModel(
+            complaint_id=complaint.id,
+            actor_id=citizen_id,
+            actor_role="CITIZEN" if citizen_id else "PUBLIC",
+            status=initial_status,
+            message=f"Grievance recorded with tracking ID {tracking_number} and routed to {dept_id}.",
+            internal_note=None,
+            created_at=submitted_time,
+        )
+        db.add(update_log)
+
+        # Award Civic Credits if citizen is authenticated (+10 for valid complaint)
+        if citizen_id:
+            await contribution_service.award_credits(
+                user_id=citizen_id,
+                event_type="VALID_COMPLAINT",
+                credits=10,
+                reference_id=str(complaint.id),
+                description=f"Civic grievance registered: {tracking_number}",
+                db=db,
+            )
 
         # 5. Save Ticket
         ticket = TicketModel(
@@ -400,6 +427,28 @@ class ComplaintService:
         complaint.status = "ASSIGNED"
         complaint.updated_at = now_ist
 
+        # Award credits for clarification provided
+        if complaint.citizen_id:
+            await contribution_service.award_credits(
+                user_id=complaint.citizen_id,
+                event_type="CLARIFICATION_PROVIDED",
+                credits=5,
+                reference_id=f"{complaint.id}_clarify_{field}",
+                description=f"Clarification provided for {complaint.tracking_number}",
+                db=db,
+            )
+
+        update_log = ComplaintUpdateModel(
+            complaint_id=complaint.id,
+            actor_id=complaint.citizen_id,
+            actor_role="CITIZEN",
+            status="ASSIGNED",
+            message=f"Citizen provided clarification for {field}: '{answer}'. SLA resumed.",
+            internal_note=None,
+            created_at=now_ist,
+        )
+        db.add(update_log)
+
         # Audit
         audit = AuditLogModel(
             entity_name="complaint",
@@ -412,6 +461,126 @@ class ComplaintService:
         await db.commit()
 
         return {"status": "ok", "message": "Clarification processed successfully", "new_status": "ASSIGNED"}
+
+    async def get_my_complaints(self, citizen_id: str, db: AsyncSession) -> List[Dict[str, Any]]:
+        """Retrieves all complaints belonging strictly to the authenticated citizen."""
+        stmt = (
+            select(ComplaintModel)
+            .where(ComplaintModel.citizen_id == citizen_id)
+            .order_by(ComplaintModel.created_at.desc())
+        )
+        res = await db.execute(stmt)
+        complaints = res.scalars().all()
+        results = []
+        for comp in complaints:
+            details = await self._format_complaint_dict(comp, db)
+            if details:
+                results.append(details)
+        return results
+
+    async def save_draft(
+        self,
+        complaint_data: Dict[str, Any],
+        session_id: Optional[str],
+        user_id: Optional[str],
+        db: AsyncSession,
+    ) -> ComplaintDraftModel:
+        """Stores or updates in-progress complaint draft for an authenticated citizen or session."""
+        now = get_ist_now()
+        draft = ComplaintDraftModel(
+            session_id=session_id,
+            user_id=user_id,
+            complaint_data=json.dumps(complaint_data),
+            created_at=now,
+            expires_at=now + timedelta(days=7),
+        )
+        db.add(draft)
+        await db.commit()
+        await db.refresh(draft)
+        return draft
+
+    async def get_draft(
+        self,
+        draft_id: str,
+        user_id: Optional[str],
+        session_id: Optional[str],
+        db: AsyncSession,
+    ) -> Optional[Dict[str, Any]]:
+        """Retrieves in-progress complaint draft verifying ownership."""
+        res = await db.execute(
+            select(ComplaintDraftModel).where(ComplaintDraftModel.id == draft_id)
+        )
+        draft = res.scalars().first()
+        if not draft:
+            return None
+        # Enforce draft privacy: user_id or session_id must match
+        if user_id and draft.user_id and draft.user_id != user_id:
+            return None
+        if not user_id and session_id and draft.session_id and draft.session_id != session_id:
+            return None
+
+        try:
+            parsed_data = json.loads(draft.complaint_data)
+        except Exception:
+            parsed_data = {}
+
+        return {
+            "id": str(draft.id),
+            "session_id": draft.session_id,
+            "complaint_data": parsed_data,
+            "created_at": draft.created_at,
+            "expires_at": draft.expires_at,
+        }
+
+    async def add_complaint_update(
+        self,
+        complaint_id: str,
+        actor_id: Optional[str],
+        actor_role: str,
+        status: str,
+        message: str,
+        internal_note: Optional[str],
+        db: AsyncSession,
+    ) -> ComplaintUpdateModel:
+        """Creates official update entry for a complaint."""
+        update_entry = ComplaintUpdateModel(
+            complaint_id=complaint_id,
+            actor_id=actor_id,
+            actor_role=actor_role,
+            status=status,
+            message=message,
+            internal_note=internal_note,
+            created_at=get_ist_now(),
+        )
+        db.add(update_entry)
+        await db.flush()
+        return update_entry
+
+    async def get_complaint_updates(
+        self,
+        complaint_id: str,
+        is_official: bool,
+        db: AsyncSession,
+    ) -> List[Dict[str, Any]]:
+        """Retrieves timeline updates. Strips confidential internal_note for citizens."""
+        stmt = (
+            select(ComplaintUpdateModel)
+            .where(ComplaintUpdateModel.complaint_id == complaint_id)
+            .order_by(ComplaintUpdateModel.created_at.asc())
+        )
+        res = await db.execute(stmt)
+        updates = res.scalars().all()
+        return [
+            {
+                "id": str(u.id),
+                "actor_role": u.actor_role,
+                "status": u.status,
+                "message": u.message,
+                "internal_note": u.internal_note if is_official else None,  # Strictly hidden from citizens
+                "created_at": format_ist_iso(u.created_at),
+            }
+            for u in updates
+        ]
 
 
 complaint_service = ComplaintService()

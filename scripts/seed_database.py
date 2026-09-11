@@ -47,11 +47,10 @@ async def seed_data():
             already_seeded = True
 
     if already_seeded:
-        print("[WARN] Database already seeded. Cleaning existing demo records for a fresh state...")
-        async with engine.begin() as conn:
-            for tbl in reversed(Base.metadata.sorted_tables):
-                await conn.execute(text(f"DROP TABLE IF EXISTS {tbl.name} CASCADE;"))
-            await conn.run_sync(Base.metadata.create_all)
+        print("[INFO] Database already seeded. Preserving existing operational records and verifying demo accounts...")
+        from scripts.seed_demo_users import seed_demo_users
+        await seed_demo_users()
+        return
 
     async with AsyncSessionLocal() as session:
 

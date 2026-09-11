@@ -9,6 +9,7 @@ CITIZEN = "CITIZEN"
 MUNICIPAL_ADMIN = "MUNICIPAL_ADMIN"
 DEPARTMENT_OFFICER = "DEPARTMENT_OFFICER"
 COLLECTOR = "COLLECTOR"
+DISTRICT_COLLECTOR = COLLECTOR  # Display / alias mapping to COLLECTOR
 
 ALL_ROLES: List[str] = [
     CITIZEN,
@@ -19,4 +20,4 @@ ALL_ROLES: List[str] = [
 
 
 def is_valid_role(role: str) -> bool:
-    return role in ALL_ROLES
+    return role in ALL_ROLES or role == "DISTRICT_COLLECTOR"

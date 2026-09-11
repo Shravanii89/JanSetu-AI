@@ -1,6 +1,7 @@
 """
 JanSetu AI - Citizen Complaints API Controller
-Handles grievance ingestion, AI understanding, public tracking, and citizen clarification.
+Handles grievance ingestion, AI understanding, citizen ownership, drafts,
+public tracking, timeline updates, and citizen clarification.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,7 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List, Optional
 
 from app.db.session import get_db
-from app.schemas.complaint import ComplaintCreate, ClarificationSubmit
+from app.api.dependencies import get_current_user, get_optional_user, require_roles
+from app.models.user import UserModel
+from app.schemas.complaint import (
+    ComplaintCreate,
+    ClarificationSubmit,
+    DraftSaveRequest,
+    DraftResponse,
+)
 from app.services.complaint_service import complaint_service
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
@@ -18,20 +26,88 @@ router = APIRouter(prefix="/complaints", tags=["Complaints"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def submit_complaint(
     complaint_in: ComplaintCreate,
+    optional_user: Optional[UserModel] = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """
     Ingests raw citizen complaint, executes AI extraction pipeline,
-    determines priority & department routing, and initiates SLA clock.
+    determines priority & department routing, associates citizen_id if authenticated,
+    and initiates SLA clock.
     """
     try:
-        result = await complaint_service.create_complaint(complaint_in, db)
+        citizen_id = str(optional_user.id) if optional_user else None
+        result = await complaint_service.create_complaint(complaint_in, db, citizen_id=citizen_id)
         return result
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process complaint: {str(e)}",
         )
+
+
+@router.get("/my")
+async def get_my_complaints(
+    current_user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """
+    Returns grievances submitted exclusively by the currently authenticated citizen.
+    Citizens can never access another citizen's complaints.
+    """
+    if current_user.role != "CITIZEN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The /my complaints queue is exclusively available to citizen accounts.",
+        )
+    return await complaint_service.get_my_complaints(str(current_user.id), db)
+
+
+@router.post("/draft")
+async def save_complaint_draft(
+    draft_in: DraftSaveRequest,
+    optional_user: Optional[UserModel] = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Preserves in-progress complaint draft before login or across registration.
+    """
+    user_id = str(optional_user.id) if optional_user else None
+    draft = await complaint_service.save_draft(
+        complaint_data=draft_in.complaint_data,
+        session_id=draft_in.session_id,
+        user_id=user_id,
+        db=db,
+    )
+    return {
+        "status": "ok",
+        "draft_id": str(draft.id),
+        "message": "Complaint draft saved successfully.",
+    }
+
+
+@router.get("/draft/{draft_id}")
+async def get_complaint_draft(
+    draft_id: str,
+    session_id: Optional[str] = Query(None),
+    optional_user: Optional[UserModel] = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Restores preserved complaint draft verifying ownership by user_id or session_id.
+    """
+    user_id = str(optional_user.id) if optional_user else None
+    draft = await complaint_service.get_draft(
+        draft_id=draft_id,
+        user_id=user_id,
+        session_id=session_id,
+        db=db,
+    )
+    if not draft:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Draft not found or expired.",
+        )
+    return draft
 
 
 @router.get("/search")
@@ -62,6 +138,25 @@ async def track_complaint(
             detail="Complaint not found. Please verify tracking number.",
         )
     return complaint
+
+
+@router.get("/{id_or_tracking}/updates")
+async def get_complaint_updates(
+    id_or_tracking: str,
+    optional_user: Optional[UserModel] = Depends(get_optional_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[Dict[str, Any]]:
+    """
+    Retrieves official action timeline. Confidential internal notes are stripped for citizens.
+    """
+    complaint = await complaint_service.get_by_tracking_or_id(id_or_tracking, db)
+    if not complaint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Complaint not found.",
+        )
+    is_official = bool(optional_user and optional_user.role in ["MUNICIPAL_ADMIN", "DEPARTMENT_OFFICER", "COLLECTOR"])
+    return await complaint_service.get_complaint_updates(complaint["id"], is_official=is_official, db=db)
 
 
 @router.post("/{id_or_tracking}/clarify")
