@@ -347,6 +347,7 @@ export const en = {
     trackOnlineButton: "Track Complaint Online",
     submitAnotherButton: "Submit Another Grievance",
     errorRequired: "Please describe your civic complaint before submitting.",
+    errorMinLength: "Please describe your civic complaint with at least 5 characters.",
     errorLocationRequired: "Please provide or select a location in Pune for your grievance.",
   },
 

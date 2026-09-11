@@ -349,6 +349,7 @@ export const hi: Translations = {
     trackOnlineButton: "ऑनलाइन स्थिति ट्रैक करें",
     submitAnotherButton: "अन्य शिकायत दर्ज करें",
     errorRequired: "कृपया जमा करने से पहले अपनी शिकायत का विवरण लिखें।",
+    errorMinLength: "कृपया अपनी शिकायत का कम से कम 5 अक्षरों में विवरण दें।",
     errorLocationRequired: "कृपया अपनी शिकायत के लिए पुणे में स्थान दर्ज करें या चुनें।",
   },
 

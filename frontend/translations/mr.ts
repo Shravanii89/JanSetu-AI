@@ -349,6 +349,7 @@ export const mr: Translations = {
     trackOnlineButton: "तक्रार स्थिती ऑनलाईन तपासा",
     submitAnotherButton: "दुसरी तक्रार नोंदवा",
     errorRequired: "कृपया तक्रार दाखल करण्यापूर्वी समस्येचे वर्णन लिहा.",
+    errorMinLength: "कृपया आपल्या तक्रारीचे किमान ५ अक्षरांमध्ये वर्णन करा.",
     errorLocationRequired: "कृपया आपल्या तक्रारीसाठी पुण्यातील ठिकाण प्रविष्ट करा किंवा निवडा.",
   },
 

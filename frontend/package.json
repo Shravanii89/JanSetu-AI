@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types tests/api_error.test.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",

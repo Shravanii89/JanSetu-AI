@@ -59,8 +59,8 @@ export default function ReportPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rawText.trim()) {
-      setErrorMessage(t("reportPage.errorRequired") || "Please describe your civic complaint before submitting.");
+    if (!rawText.trim() || rawText.trim().length < 5) {
+      setErrorMessage(t("reportPage.errorMinLength") || "Please describe your civic complaint with at least 5 characters.");
       return;
     }
 
@@ -77,8 +77,8 @@ export default function ReportPage() {
         raw_text: rawText,
         preferred_language: language,
         location_name: locationName.trim() || undefined,
-        latitude: latitude,
-        longitude: longitude,
+        latitude: typeof latitude === "number" && !isNaN(latitude) ? latitude : undefined,
+        longitude: typeof longitude === "number" && !isNaN(longitude) ? longitude : undefined,
         client_timestamp: new Date().toISOString(),
       });
       setSubmitSuccess(result);
