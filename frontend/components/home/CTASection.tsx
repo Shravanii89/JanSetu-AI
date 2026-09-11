@@ -2,22 +2,23 @@
 
 import React from "react";
 import Link from "next/link";
-import { Shield, FileText, Search, ArrowRight } from "lucide-react";
+import { FileText, Search, ArrowRight, HeartHandshake } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
+import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const CTASection: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-[#123B5D] to-[#1F5E91] py-16 sm:py-20 text-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#123B5D] via-[#1F5E91] to-[#123B5D] py-16 sm:py-20">
       {/* Background Accent Gradients */}
       <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#F39A32]/10 blur-3xl" />
       <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
 
       <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
         {/* Emblem Badge */}
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner mb-6">
-          <Shield className="h-8 w-8 text-[#F39A32]" />
+        <div className="mb-6 flex justify-center">
+          <JanSetuLogo variant="icon" size="lg" theme="dark" />
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Shield,
   Menu,
   X,
   Phone,
@@ -15,6 +14,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useTranslation } from "../../context/LanguageContext";
+import JanSetuLogo from "../branding/JanSetuLogo";
 
 export const PublicNavbar: React.FC = () => {
   const pathname = usePathname();
@@ -116,9 +116,7 @@ export const PublicNavbar: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo & Tagline */}
           <Link href="/" className="flex items-center gap-3.5 group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#123B5D] text-white shadow-md border-2 border-[#1F5E91] group-hover:border-[#F39A32] transition-colors">
-              <Shield className="h-7 w-7 text-[#F39A32]" />
-            </div>
+            <JanSetuLogo variant="icon" size="md" theme="light" />
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-black tracking-tight text-[#123B5D]">

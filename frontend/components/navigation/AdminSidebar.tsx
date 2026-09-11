@@ -1,6 +1,8 @@
 // JanSetu AI - AdminSidebar (Navigation)
 import React from "react";
 
+import JanSetuLogo from "../branding/JanSetuLogo";
+
 export interface AdminSidebarProps {
   className?: string;
   children?: React.ReactNode;
@@ -8,9 +10,12 @@ export interface AdminSidebarProps {
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ className = "", children }) => {
   return (
-    <div className={`jansetu-adminsidebar ${className}`}>
-      {children || <span>AdminSidebar Component Placeholder</span>}
-    </div>
+    <aside className={`jansetu-adminsidebar bg-[#123B5D] text-white p-4 ${className}`}>
+      <div className="mb-4 flex items-center">
+        <JanSetuLogo variant="icon" size="sm" theme="dark" href="/admin" />
+      </div>
+      {children}
+    </aside>
   );
 };
 
