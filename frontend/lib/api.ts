@@ -35,6 +35,8 @@ export async function submitComplaint(data: {
   citizen_email?: string;
   preferred_language?: string;
   location_name?: string;
+  latitude?: number;
+  longitude?: number;
 }) {
   return apiClient<{
     id: string;

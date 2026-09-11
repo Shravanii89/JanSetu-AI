@@ -316,6 +316,14 @@ export const mr: Translations = {
     missingLocationDefault: "कृपया खाली आपल्या परिसराचे किंवा जवळच्या ठिकाणाचे नाव लिहा जेणेकरून पथक तिथे पोहोचू शकेल.",
     locationLabel: "पुण्यातील परिसर / खूण / ठिकाण",
     locationPlaceholder: "उदा. बाणेर रोड बालेवाडी फाट्याजवळ, किंवा कोथरूड कर्वे पुतळ्याजवळ",
+    useCurrentLocation: "माझे सध्याचे ठिकाण वापरा",
+    detectingLocation: "ठिकाण शोधत आहे...",
+    mapTip: "टीप: आपण ठिकाण निवडण्यासाठी नकाशावरही क्लिक करू शकता. पत्ता आपोआप भरला जाईल.",
+    locationPermissionDenied: "स्थान परवानगी नाकारली गेली. कृपया नकाशावर क्लिक करून ठिकाण निवडा किंवा स्वतः टाईप करा.",
+    locationUnavailable: "ठिकाणाची माहिती उपलब्ध नाही. कृपया नकाशावर ठिकाण निवडा किंवा स्वतः टाईप करा.",
+    locationTimeout: "स्थान विनंतीची वेळ संपली. कृपया पुन्हा प्रयत्न करा.",
+    selectedLocation: "निवडलेले ठिकाण",
+    coordinates: "अक्षांश-रेखांश",
     contactHeading: "नागरिक संपर्क माहिती (एसएमएस आणि स्थिती अपडेटसाठी)",
     fullNameLabel: "आपले पूर्ण नाव",
     fullNamePlaceholder: "उदा. आनंद देशमुख",
@@ -338,6 +346,7 @@ export const mr: Translations = {
     trackOnlineButton: "तक्रार स्थिती ऑनलाईन तपासा",
     submitAnotherButton: "दुसरी तक्रार नोंदवा",
     errorRequired: "कृपया तक्रार दाखल करण्यापूर्वी समस्येचे वर्णन लिहा.",
+    errorLocationRequired: "कृपया आपल्या तक्रारीसाठी पुण्यातील ठिकाण प्रविष्ट करा किंवा निवडा.",
   },
 
   // Track Complaint Page

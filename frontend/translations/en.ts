@@ -314,6 +314,14 @@ export const en = {
     missingLocationDefault: "Please specify your area or landmark below so crews can locate it.",
     locationLabel: "Area / Landmark / Location in Pune",
     locationPlaceholder: "e.g. Baner Road near Balewadi Phata, or Kothrud near Karve Statue",
+    useCurrentLocation: "Use my current location",
+    detectingLocation: "Detecting location...",
+    mapTip: "Tip: You can also click on the map to select a location. The address will be filled automatically.",
+    locationPermissionDenied: "Location permission was denied. Please select your location directly on the map or type it manually.",
+    locationUnavailable: "Location information is unavailable. Please select your location on the map or type it manually.",
+    locationTimeout: "Location request timed out. Please select on the map or try again.",
+    selectedLocation: "Selected Location",
+    coordinates: "Coordinates",
     contactHeading: "Citizen Contact Details (For SMS & Resolution Updates)",
     fullNameLabel: "Your Full Name",
     fullNamePlaceholder: "e.g. Anand Deshmukh",
@@ -336,6 +344,7 @@ export const en = {
     trackOnlineButton: "Track Complaint Online",
     submitAnotherButton: "Submit Another Grievance",
     errorRequired: "Please describe your civic complaint before submitting.",
+    errorLocationRequired: "Please provide or select a location in Pune for your grievance.",
   },
 
   // Track Complaint Page

@@ -15,6 +15,8 @@ class ComplaintCreate(BaseModel):
     preferred_language: str = "en"
     input_channel: str = "WEB"
     location_name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     audio_url: Optional[str] = None
     image_url: Optional[str] = None
 
