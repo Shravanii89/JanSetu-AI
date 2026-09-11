@@ -15,7 +15,7 @@ if REPO_ROOT not in sys.path:
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
-from app.db.session import init_db, AsyncSessionLocal
+from app.db.session import init_db, AsyncSessionLocal, engine
 from app.models.user import UserModel
 from sqlalchemy import select
 
@@ -30,6 +30,7 @@ def setup_test_database():
             if not result.scalars().first():
                 from scripts.seed_database import seed_data
                 await seed_data()
+        await engine.dispose()
 
     asyncio.run(_setup())
 

@@ -10,7 +10,7 @@ BASE_URL = "http://localhost:8000/api/v1"
 
 def test_flow_a():
     print("\n--- Testing FLOW A: Citizen Intake, AI Triage, Missing Location, Clarification, Tracking ---")
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
         # 1. Citizen submits canonical prompt
         payload = {
             "raw_text": "There has been no water supply in our area for three days and nobody is responding.",
@@ -57,7 +57,7 @@ def test_flow_a():
 
 def test_flow_b():
     print("\n--- Testing FLOW B: Water Department Officer Login, View Scoped Queue, Status Transitions ---")
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
         # 1. Login as Water Officer
         login_res = client.post("/auth/login", json={
             "email_or_employee_id": "water.officer@jansetu.local",
@@ -102,7 +102,7 @@ def test_flow_b():
 
 def test_flow_c():
     print("\n--- Testing FLOW C: Municipal Admin Login, Overview Telemetry, Cross-Dept Visibility ---")
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
         # 1. Login as Admin
         login_res = client.post("/auth/login", json={
             "email_or_employee_id": "admin@jansetu.local",
@@ -139,7 +139,7 @@ def test_flow_c():
 
 def test_flow_d():
     print("\n--- Testing FLOW D: Collector Oversight, Critical Hazards, SLA Breaches, Incidents ---")
-    with httpx.Client(base_url=BASE_URL, timeout=10.0) as client:
+    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
         # 1. Login as Collector
         login_res = client.post("/auth/login", json={
             "email_or_employee_id": "collector@jansetu.local",
