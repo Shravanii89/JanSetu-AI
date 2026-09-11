@@ -16,7 +16,6 @@ import {
   User,
   Phone,
   Mail,
-  Globe,
   Copy,
   Check,
   Building2,
@@ -28,22 +27,14 @@ import { useTranslation } from "../../context/LanguageContext";
 
 export default function ReportPage() {
   const router = useRouter();
-  const { t, language: activeLang } = useTranslation();
+  const { t, language } = useTranslation();
 
   // Form state
   const [rawText, setRawText] = useState("");
-  const [language, setLanguage] = useState<string>(activeLang || "en");
   const [locationName, setLocationName] = useState("");
   const [citizenName, setCitizenName] = useState("");
   const [citizenPhone, setCitizenPhone] = useState("");
   const [citizenEmail, setCitizenEmail] = useState("");
-
-  // Sync with activeLang if user hasn't selected a different one in the form
-  React.useEffect(() => {
-    if (activeLang && activeLang !== language) {
-      setLanguage(activeLang);
-    }
-  }, [activeLang]);
 
   // AI & Submission state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -229,35 +220,6 @@ export default function ReportPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Language Selection */}
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5 mb-2">
-                  <Globe className="h-4 w-4 text-[#1F5E91]" />
-                  {t("reportPage.prefLangLabel")}
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { code: "en", label: "English" },
-                    { code: "hi", label: "हिंदी (Hindi)" },
-                    { code: "mr", label: "मराठी (Marathi)" },
-                    { code: "hinglish", label: "Hinglish" },
-                  ].map((lang) => (
-                    <button
-                      type="button"
-                      key={lang.code}
-                      onClick={() => setLanguage(lang.code)}
-                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition text-center ${
-                        language === lang.code
-                          ? "border-[#1F5E91] bg-[#1F5E91] text-white shadow-sm"
-                          : "border-[#E9E9E9] bg-white text-[#1F2933] hover:bg-[#F5F4F0]"
-                      }`}
-                    >
-                      {lang.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Main Grievance Narrative */}
               <div>
                 <div className="flex justify-between items-center mb-2">
