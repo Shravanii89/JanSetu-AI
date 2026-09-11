@@ -50,3 +50,16 @@ body {
 .gov-shadow-lg {
   box-shadow: 0 10px 15px -3px rgba(18, 59, 93, 0.1), 0 4px 6px -4px rgba(18, 59, 93, 0.05);
 }
+
+/* Accessibility text size scaling */
+html[data-text-size="small"] {
+  font-size: 90%;
+}
+
+html[data-text-size="normal"] {
+  font-size: 100%;
+}
+
+html[data-text-size="large"] {
+  font-size: 112.5%;
+}
