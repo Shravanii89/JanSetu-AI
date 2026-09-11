@@ -32,18 +32,20 @@ from app.rules.roles import MUNICIPAL_ADMIN, DEPARTMENT_OFFICER, COLLECTOR, CITI
 from app.rules.sla_policy import calculate_deadlines
 
 
+from sqlalchemy import select, text
+
 async def seed_data():
     print("[INIT] Initializing database schema...")
     await init_db()
 
     async with AsyncSessionLocal() as session:
         # Check if already seeded
-        from sqlalchemy import select
         existing_depts = await session.execute(select(DepartmentModel))
         if existing_depts.scalars().first():
             print("[WARN] Database already seeded. Cleaning existing demo records for a fresh state...")
             async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.drop_all)
+                for tbl in reversed(Base.metadata.sorted_tables):
+                    await conn.execute(text(f"DROP TABLE IF EXISTS {tbl.name} CASCADE;"))
                 await conn.run_sync(Base.metadata.create_all)
 
         print("[DEPTS] Seeding 8 Controlled PMC Departments...")
@@ -150,6 +152,8 @@ async def seed_data():
                 collector_user = user
 
         print("[INCIDENTS] Seeding Clustered Incidents...")
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+
         inc1 = IncidentModel(
             incident_number="INC-2026-PUN-0001",
             title="Major Water Pipeline Breach - Baner & Balewadi Corridor",
@@ -161,8 +165,8 @@ async def seed_data():
             latitude=18.5590,
             longitude=73.7868,
             complaint_count=6,
-            first_reported_at=datetime.now(timezone.utc) - timedelta(hours=36),
-            last_activity_at=datetime.now(timezone.utc) - timedelta(hours=2),
+            first_reported_at=now - timedelta(hours=36),
+            last_activity_at=now - timedelta(hours=2),
         )
         session.add(inc1)
 
@@ -177,14 +181,13 @@ async def seed_data():
             latitude=18.5074,
             longitude=73.8077,
             complaint_count=4,
-            first_reported_at=datetime.now(timezone.utc) - timedelta(days=3),
-            last_activity_at=datetime.now(timezone.utc) - timedelta(hours=5),
+            first_reported_at=now - timedelta(days=3),
+            last_activity_at=now - timedelta(hours=5),
         )
         session.add(inc2)
         await session.flush()
 
         print("[GRIEVANCES] Seeding Realistic Pune Civic Grievances...")
-        now = datetime.now(timezone.utc)
 
         sample_grievances = [
             # 1. P0 Emergency: Live Wire
@@ -625,6 +628,7 @@ async def seed_data():
 
         await session.commit()
         print("[SUCCESS] Successfully seeded JanSetu AI with 8 departments, demo accounts, and 31 realistic Pune grievances!")
+    await engine.dispose()
 
 
 if __name__ == "__main__":

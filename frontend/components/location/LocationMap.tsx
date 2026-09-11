@@ -55,7 +55,7 @@ function MapController({
 // Map click listener component
 function MapEvents({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
   const map = useMapEvents({
-    click(e) {
+    click(e: any) {
       const { lat, lng } = e.latlng;
       onMapClick(lat, lng);
       // Smoothly zoom slightly into the clicked location if zoom < 15
@@ -134,7 +134,7 @@ export default function LocationMap({
           position={currentCoords}
           icon={pinIcon}
           eventHandlers={{
-            click: (e) => {
+            click: (e: any) => {
               e.target.openPopup();
             },
           }}
