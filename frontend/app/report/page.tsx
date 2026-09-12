@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   FileText,
-  Sparkles,
   MapPin,
   CheckCircle2,
   AlertTriangle,
@@ -115,6 +114,15 @@ function ReportFormContent() {
     }
   };
 
+  // Silent background AI triage check (debounced)
+  useEffect(() => {
+    if (rawText.trim().length < 10) return;
+    const timer = setTimeout(() => {
+      handlePreAnalyze();
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [rawText, language]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -125,15 +133,15 @@ function ReportFormContent() {
       setFocusedField(firstUnres?.field || null);
 
       if (firstUnres?.field === "raw_text") {
-        setErrorMessage(firstUnres.question || "Please provide a valid description for your grievance.");
+        setErrorMessage(firstUnres.question || "Could you please provide more details about the issue?");
         descriptionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         descriptionRef.current?.focus();
       } else if (firstUnres?.field === "location") {
-        setErrorMessage(firstUnres.question || "Please provide or select a location in Pune for your grievance.");
+        setErrorMessage(firstUnres.question || "Where is this issue located?");
         locationInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         locationInputRef.current?.focus();
       } else {
-        setErrorMessage(firstUnres?.question || "Please complete all mandatory information before submitting.");
+        setErrorMessage(firstUnres?.question || "Could you please provide the missing required information?");
       }
       return;
     }
@@ -358,20 +366,11 @@ function ReportFormContent() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Main Grievance Narrative */}
             <div>
-              <div className="flex justify-between items-center mb-2">
+              <div className="mb-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1F2933] flex items-center gap-1.5">
                   <FileText className="h-4 w-4 text-[#1F5E91]" />
                   {t("reportPage.describeLabel") || "Describe the Issue"} <span className="text-rose-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={handlePreAnalyze}
-                  disabled={isAnalyzing || rawText.trim().length < 5}
-                  className="text-xs font-bold text-[#1F5E91] hover:text-[#123B5D] disabled:opacity-40 inline-flex items-center gap-1"
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-[#F39A32]" />
-                  <span>{isAnalyzing ? t("reportPage.analyzing") : t("reportPage.instantCheck")}</span>
-                </button>
               </div>
               <textarea
                 ref={descriptionRef}
@@ -429,52 +428,6 @@ function ReportFormContent() {
                 </div>
               )}
             </div>
-
-            {/* Instant AI Preview Card */}
-            {aiPreview && (
-              <div className="rounded-xl border border-[#1F5E91]/30 bg-[#1F5E91]/5 p-4 animate-in fade-in slide-in-from-top-2">
-                <div className="flex items-center justify-between border-b border-[#1F5E91]/20 pb-2 mb-3">
-                  <span className="text-xs font-bold text-[#123B5D] flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-[#F39A32]" /> {t("reportPage.previewTitle") || "AI Analysis Preview"}
-                  </span>
-                  <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-[#E9E9E9] text-[#1F5E91] font-bold">
-                    {aiPreview.provider}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div>
-                    <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldCategory") || "Category"}</span>
-                    <span className="font-semibold text-[#1F2933]">{aiPreview.summary}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldDepartment") || "Department"}</span>
-                    <span className="font-bold text-[#1F5E91]">
-                      {aiPreview.department.replace("_", " ")}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldPriority") || "Priority"}</span>
-                    <span className="font-black text-[#F39A32]">{aiPreview.priority}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#667085] block text-[10px] uppercase font-bold">{t("reportPage.fieldDuration") || "Duration"}</span>
-                    <span className="font-semibold text-[#1F2933]">{aiPreview.extracted_duration || "N/A"}</span>
-                  </div>
-                </div>
-
-                {/* Clarification prompt if missing location */}
-                {aiPreview.missing_fields?.includes("location") && (
-                  <div className="mt-3 pt-3 border-t border-[#1F5E91]/10 flex items-start gap-2 text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">{t("reportPage.missingLocationTitle")} </span>
-                      {aiPreview.clarification_questions?.[0] || t("reportPage.missingLocationDefault")}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Location Picker with GPS & Map */}
             <div>
