@@ -25,11 +25,12 @@ class AIOrchestrator:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY", "").strip()
         self.has_gemini = bool(self.api_key and self.api_key != "your-google-gemini-api-key-placeholder")
+        self.model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip() or "gemini-3.6-flash"
         if self.has_gemini:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel("gemini-1.5-flash")
+                self.model = genai.GenerativeModel(self.model_name)
             except Exception as e:
                 print(f"Warning: Gemini initialization failed: {e}. Using deterministic fallback.")
                 self.has_gemini = False
@@ -82,7 +83,7 @@ CRITICAL SAFETY DIRECTIVE:
             generation_config={"response_mime_type": "application/json"}
         )
         data = json.loads(response.text)
-        data["provider"] = "Gemini API (gemini-1.5-flash)"
+        data["provider"] = f"Gemini API ({self.model_name})"
         data["department"] = validate_department(data.get("department"))
         return data
 
