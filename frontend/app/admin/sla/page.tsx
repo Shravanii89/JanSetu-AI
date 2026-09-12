@@ -1,14 +1,19 @@
-// JanSetu AI - Municipal SLA Monitor
-// TODO: Implement full functionality in Phase 7
+// JanSetu AI - SLA Breach & Risk Watchlist
+// TODO: Implement full functionality in Phase 9
+import React from "react";
+import OfficialNavbar from "../../../components/navigation/OfficialNavbar";
 
 export default function Page() {
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">Municipal SLA Monitor</h1>
-        <p className="mt-2 text-sm text-slate-600">Real-time SLA health, at-risk warnings, and breaches.</p>
-        <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800">
-          Scaffolded view — Full interactive UI scheduled for Phase 7.
+    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+      <OfficialNavbar title="SLA Breach & Risk Watchlist" />
+      <div className="container mx-auto p-6 max-w-7xl flex-1">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-bold text-slate-900">SLA Breach & Risk Watchlist</h1>
+          <p className="mt-2 text-sm text-slate-600">Cross-department tickets approaching SLA breach or already overdue.</p>
+          <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800">
+            Scaffolded view — Full interactive UI scheduled for Phase 9.
+          </div>
         </div>
       </div>
     </div>

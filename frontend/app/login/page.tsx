@@ -75,12 +75,21 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect") || "";
+  const portalParam = searchParams.get("portal") || "";
   const isDraftNotice = searchParams.get("draft") === "true";
 
   const { t } = useTranslation();
   const { login } = useAuth();
 
-  const [portalType, setPortalType] = useState<"CITIZEN" | "OFFICIAL">("CITIZEN");
+  const isOfficialInitial =
+    portalParam.toLowerCase() === "official" ||
+    redirectParam.startsWith("/admin") ||
+    redirectParam.startsWith("/department") ||
+    redirectParam.startsWith("/collector");
+
+  const [portalType, setPortalType] = useState<"CITIZEN" | "OFFICIAL">(
+    isOfficialInitial ? "OFFICIAL" : "CITIZEN"
+  );
   const [selectedDeptId, setSelectedDeptId] = useState("WATER_SUPPLY");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -147,7 +156,9 @@ function LoginFormContent() {
             JanSetu <span className="text-[#F39A32]">AI</span>
           </h1>
           <p className="text-xs text-[#667085] mt-0.5 font-semibold">
-            Civic Grievance Redressal & Citizen Empowerment
+            {portalType === "OFFICIAL"
+              ? "Official Government Access — Authorized Personnel"
+              : "Civic Grievance Redressal & Citizen Empowerment"}
           </p>
 
           {/* Draft Notification Banner */}
@@ -249,7 +260,11 @@ function LoginFormContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-4 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95 cursor-pointer"
+              className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95 cursor-pointer ${
+                portalType === "OFFICIAL"
+                  ? "bg-[#123B5D] hover:bg-[#0D2B45]"
+                  : "bg-[#1F5E91] hover:bg-[#123B5D]"
+              }`}
             >
               <Shield className="h-4 w-4 text-[#F39A32]" />
               <span>
@@ -264,19 +279,21 @@ function LoginFormContent() {
           </div>
         </form>
 
-        {/* Citizen Registration Link */}
-        <div className="mt-5 p-3 rounded-xl bg-[#F5F4F0] border border-[#E9E9E9] text-center">
-          <p className="text-xs text-[#667085]">
-            Don&apos;t have a citizen account?{" "}
-            <Link
-              href={`/register${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ""}`}
-              className="text-[#1F5E91] font-bold hover:underline inline-flex items-center gap-1 ml-1"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Create Citizen Account
-            </Link>
-          </p>
-        </div>
+        {/* Citizen Registration Link - ONLY for Citizen Portal */}
+        {portalType === "CITIZEN" && (
+          <div className="mt-5 p-3 rounded-xl bg-[#F5F4F0] border border-[#E9E9E9] text-center">
+            <p className="text-xs text-[#667085]">
+              Don&apos;t have a citizen account?{" "}
+              <Link
+                href={`/register${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ""}`}
+                className="text-[#1F5E91] font-bold hover:underline inline-flex items-center gap-1 ml-1"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Create Citizen Account
+              </Link>
+            </p>
+          </div>
+        )}
 
         {/* Quick Fill Demo Accounts Panel */}
         <div className="mt-6 pt-5 border-t border-[#E9E9E9]">
