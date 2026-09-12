@@ -53,6 +53,7 @@ function ReportFormContent() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiPreview, setAiPreview] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [submitSuccess, setSubmitSuccess] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedTracking, setCopiedTracking] = useState(false);
@@ -126,6 +127,9 @@ function ReportFormContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent duplicate submission events
+    if (isSubmitting || isSubmittingRef.current) return;
+
     // Strict Mandatory Validation Gate
     if (!formValidation.canSubmit) {
       setHasAttemptedSubmit(true);
@@ -173,6 +177,7 @@ function ReportFormContent() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -195,8 +200,9 @@ function ReportFormContent() {
       // Refresh profile to reflect +10 credits and new badges
       await refreshProfile();
     } catch (err: any) {
-      setErrorMessage(err.message || "Failed to submit complaint. Please try again.");
+      setErrorMessage(err.message || "Unable to submit your complaint. Please try again.");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
