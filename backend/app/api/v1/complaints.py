@@ -5,6 +5,7 @@ public tracking, timeline updates, and citizen clarification.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any, List, Optional
 
@@ -18,6 +19,7 @@ from app.schemas.complaint import (
     DraftResponse,
 )
 from app.services.complaint_service import complaint_service
+from app.rules.mandatory_validation import MandatoryValidationException
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
@@ -28,16 +30,23 @@ async def submit_complaint(
     complaint_in: ComplaintCreate,
     optional_user: Optional[UserModel] = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
-) -> Dict[str, Any]:
+) -> Any:
     """
     Ingests raw citizen complaint, executes AI extraction pipeline,
-    determines priority & department routing, associates citizen_id if authenticated,
-    and initiates SLA clock.
+    strictly validates all mandatory fields, determines priority & department routing,
+    associates citizen_id if authenticated, and initiates SLA clock.
     """
     try:
         citizen_id = str(optional_user.id) if optional_user else None
         result = await complaint_service.create_complaint(complaint_in, db, citizen_id=citizen_id)
         return result
+    except MandatoryValidationException as mve:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=mve.to_dict(),
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

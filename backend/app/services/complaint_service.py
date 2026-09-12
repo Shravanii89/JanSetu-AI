@@ -28,6 +28,10 @@ from app.ai.pipeline.orchestrator import orchestrator
 from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
 from app.rules.escalation_rules import check_auto_escalation
 from app.services.contribution_service import contribution_service
+from app.rules.mandatory_validation import (
+    validate_complaint_submission,
+    MandatoryValidationException,
+)
 
 
 class ComplaintService:
@@ -53,10 +57,27 @@ class ComplaintService:
         dept_id = ai_res["department"]
         is_emergency = (priority == "P0")
 
+        # 2.5 Strict Mandatory Field Validation
+        val_res = validate_complaint_submission(
+            data={
+                "raw_text": data.raw_text,
+                "location_name": final_location,
+                "complaint_type": ai_res.get("summary") or ai_res.get("complaint_type"),
+            },
+            department=dept_id,
+            is_emergency=is_emergency,
+        )
+
+        if not val_res["can_submit"] and not is_emergency:
+            raise MandatoryValidationException(
+                invalid_fields=val_res["invalid_fields"],
+                message="Please complete all mandatory information before submitting your complaint.",
+            )
+
         # 3. Determine Initial Ticket Status
         if is_emergency:
             initial_status = "ASSIGNED"  # P0 emergency bypass: route immediately
-        elif ai_res.get("missing_fields"):
+        elif not val_res["can_submit"]:
             initial_status = "NEEDS_CLARIFICATION"
         else:
             initial_status = "ASSIGNED"
@@ -174,7 +195,17 @@ class ComplaintService:
         db.add(sla)
 
         # 8. Create Clarification Request if needed
-        if initial_status == "NEEDS_CLARIFICATION" and ai_res.get("clarification_questions"):
+        unresolved = val_res.get("first_unresolved")
+        if (initial_status == "NEEDS_CLARIFICATION" or (is_emergency and not val_res["can_submit"])) and unresolved:
+            clarif = ClarificationModel(
+                complaint_id=complaint.id,
+                ticket_id=ticket.id,
+                sender_type="AI",
+                question=unresolved.get("question") or (ai_res.get("clarification_questions", [""])[0] if ai_res.get("clarification_questions") else "Please provide the exact location."),
+                requested_field=unresolved.get("field", "location"),
+            )
+            db.add(clarif)
+        elif initial_status == "NEEDS_CLARIFICATION" and ai_res.get("clarification_questions"):
             clarif = ClarificationModel(
                 complaint_id=complaint.id,
                 ticket_id=ticket.id,
