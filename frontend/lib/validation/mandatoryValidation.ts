@@ -101,7 +101,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (!location) {
     return {
       status: "EMPTY",
-      question: "Where is this issue located?",
+      question: "Where is this issue located? To help us route your complaint correctly, could you please provide the area, street, ward, or a nearby landmark?",
     };
   }
 
@@ -109,7 +109,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (!clean) {
     return {
       status: "EMPTY",
-      question: "Where is this issue located?",
+      question: "Where is this issue located? To help us route your complaint correctly, could you please provide the area, street, ward, or a nearby landmark?",
     };
   }
 
@@ -119,7 +119,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (JUNK_TEXT_PATTERNS.includes(lower)) {
     return {
       status: "INVALID",
-      question: "Where is this issue located in Pune?",
+      question: "Where is this issue located in Pune? Please enter a valid street name, landmark, or area in Pune rather than random text.",
     };
   }
 
@@ -128,7 +128,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (uniqueChars.size <= 3 && lower.length >= 4) {
     return {
       status: "INVALID",
-      question: "Where is this issue located in Pune?",
+      question: "Where is this issue located in Pune? Please enter a valid street name, landmark, or area in Pune rather than random text.",
     };
   }
 
@@ -137,7 +137,7 @@ export function validateLocation(location: string | null | undefined): { status:
     if (lower.includes(pattern)) {
       return {
         status: "INVALID",
-        question: "Where is this issue located?",
+        question: "Where is this issue located? Please enter an actual location or landmark rather than an unrelated comment.",
       };
     }
   }
@@ -147,7 +147,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (OVERLY_BROAD_LOCATIONS.includes(cleanAlpha)) {
     return {
       status: "INSUFFICIENT",
-      question: "Could you please provide a more specific location or nearby landmark?",
+      question: "Could you please provide a more specific location or nearby landmark? Please provide a more specific area, street, ward, or nearby landmark so the concerned department can locate the issue.",
     };
   }
 
@@ -155,7 +155,7 @@ export function validateLocation(location: string | null | undefined): { status:
   if (clean.length < 4) {
     return {
       status: "INSUFFICIENT",
-      question: "Could you please provide a more specific location or nearby landmark?",
+      question: "Location is too short. Could you please provide a more specific location or nearby landmark?",
     };
   }
 
@@ -169,7 +169,7 @@ export function validateLocation(location: string | null | undefined): { status:
     if (words.length < 2 || clean.length < 8) {
       return {
         status: "INVALID",
-        question: "Could you please provide a more specific location or nearby landmark?",
+        question: "Please enter a recognizable street, colony, ward, or nearby landmark in Pune. Could you please provide a more specific location or nearby landmark?",
       };
     }
   }
@@ -184,7 +184,7 @@ export function validateDescription(text: string | null | undefined): { status: 
   if (!text) {
     return {
       status: "EMPTY",
-      question: "What issue are you experiencing?",
+      question: "What issue are you experiencing? Please describe the civic issue you are facing.",
     };
   }
 
@@ -192,7 +192,7 @@ export function validateDescription(text: string | null | undefined): { status: 
   if (!clean) {
     return {
       status: "EMPTY",
-      question: "What issue are you experiencing?",
+      question: "What issue are you experiencing? Please describe the civic issue you are facing.",
     };
   }
 
@@ -202,7 +202,7 @@ export function validateDescription(text: string | null | undefined): { status: 
   if (JUNK_TEXT_PATTERNS.includes(lower)) {
     return {
       status: "INVALID",
-      question: "Could you please describe the specific civic problem you are facing?",
+      question: "Please provide a meaningful description of the issue rather than placeholder text. Could you please describe the specific civic problem you are facing?",
     };
   }
 
@@ -211,7 +211,7 @@ export function validateDescription(text: string | null | undefined): { status: 
   if (uniqueChars.size <= 2 && clean.length > 4) {
     return {
       status: "INVALID",
-      question: "Could you please provide more details about the issue?",
+      question: "Please provide a clear and meaningful description of your grievance. Could you please provide more details about the issue?",
     };
   }
 
@@ -220,7 +220,7 @@ export function validateDescription(text: string | null | undefined): { status: 
     if (lower === pattern || lower === `${pattern}.` || lower === `${pattern}!`) {
       return {
         status: "INVALID",
-        question: "Could you please describe the specific civic problem you are facing?",
+        question: "Please describe the specific civic problem you are facing (e.g. water leakage, pothole, street light outage). Could you please describe the specific civic problem you are facing?",
       };
     }
   }
@@ -235,12 +235,12 @@ export function validateDescription(text: string | null | undefined): { status: 
         const topic = clean.replace(/[?.!]+$/, "").trim();
         return {
           status: "INSUFFICIENT",
-          question: `Could you please describe the ${topic} in more detail?`,
+          question: `Could you please describe the ${topic} in more detail? Please provide more details regarding what issue is occurring.`,
         };
       }
       return {
         status: "INSUFFICIENT",
-        question: "Could you please provide more details about the issue?",
+        question: "Could you please provide more details about the issue? Please provide more details regarding what issue is occurring.",
       };
     }
   }
@@ -263,7 +263,7 @@ export function validateComplaintType(
       }
       return {
         status: "EMPTY",
-        question: "Which category does your complaint relate to?",
+        question: "Which category does your complaint relate to? Please confirm or select the category of your complaint.",
       };
     }
     return { status: "VALID" };
@@ -282,7 +282,7 @@ export function validateComplaintType(
 
   return {
     status: "EMPTY",
-    question: "Which category does your complaint relate to?",
+    question: "Which category does your complaint relate to? Please confirm or select the category of your complaint.",
   };
 }
 

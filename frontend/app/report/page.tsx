@@ -133,15 +133,15 @@ function ReportFormContent() {
       setFocusedField(firstUnres?.field || null);
 
       if (firstUnres?.field === "raw_text") {
-        setErrorMessage(firstUnres.question || "Could you please provide more details about the issue?");
+        setErrorMessage(firstUnres.question || "Please provide a valid description for your grievance. Could you please provide more details about the issue?");
         descriptionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         descriptionRef.current?.focus();
       } else if (firstUnres?.field === "location") {
-        setErrorMessage(firstUnres.question || "Where is this issue located?");
+        setErrorMessage(firstUnres.question || "Please provide or select a location in Pune for your grievance. Where is this issue located?");
         locationInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         locationInputRef.current?.focus();
       } else {
-        setErrorMessage(firstUnres?.question || "Could you please provide the missing required information?");
+        setErrorMessage(firstUnres?.question || "Please complete all mandatory information before submitting. Could you please provide the missing required information?");
       }
       return;
     }
