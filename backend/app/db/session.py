@@ -77,8 +77,32 @@ def _normalize_database_url(url: str) -> Tuple[str, Dict[str, Any], Dict[str, An
     return sanitized_url, connect_args, engine_kwargs
 
 
+def _resolve_raw_database_url() -> str:
+    # 1. If explicit TEST_DATABASE_URL is provided, use it
+    test_db_url = os.getenv("TEST_DATABASE_URL", "").strip()
+    if test_db_url:
+        return test_db_url
+
+    import sys
+    is_test_mode = (
+        "pytest" in sys.modules
+        or bool(os.getenv("PYTEST_CURRENT_TEST"))
+        or os.getenv("ENVIRONMENT") == "test"
+        or getattr(settings, "ENVIRONMENT", "") == "test"
+    )
+
+    # In test mode, use isolated test database unless live database is explicitly requested
+    if is_test_mode and not os.getenv("USE_LIVE_DATABASE"):
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        db_path = os.path.join(project_root, "jansetu_test.db").replace("\\", "/")
+        return f"sqlite+aiosqlite:///{db_path}"
+
+    # Normal application / development / production mode:
+    return settings.DATABASE_URL or os.getenv("DATABASE_URL", "")
+
+
 # Resolve configured database URL from settings or environment
-_raw_db_url = settings.DATABASE_URL or os.getenv("DATABASE_URL", "")
+_raw_db_url = _resolve_raw_database_url()
 ASYNC_DATABASE_URL, _connect_args, _engine_kwargs = _normalize_database_url(_raw_db_url)
 
 engine = create_async_engine(

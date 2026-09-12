@@ -25,11 +25,15 @@ def setup_test_database():
     """Ensure database schema is created and seeded before running tests."""
     async def _setup():
         await init_db()
+        from scripts.seed_database import seed_data
+        from scripts.seed_demo_users import seed_demo_users
+
         async with AsyncSessionLocal() as session:
             result = await session.execute(select(UserModel).filter_by(email="admin@jansetu.local"))
             if not result.scalars().first():
-                from scripts.seed_database import seed_data
                 await seed_data()
+            else:
+                await seed_demo_users()
         await engine.dispose()
 
     asyncio.run(_setup())

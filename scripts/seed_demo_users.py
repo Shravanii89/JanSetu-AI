@@ -242,64 +242,71 @@ async def seed_demo_users():
                 "name": "First Voice",
                 "description": "Submitted your first civic grievance on JanSetu AI.",
                 "icon": "🌟",
-                "credits_reward": 10,
-                "requirement": "Submit 1 complaint",
+                "criteria": "Submit 1 valid civic grievance",
+                "required_credits": 10,
             },
             {
                 "id": "civic_starter",
                 "name": "Civic Starter",
                 "description": "Earned 20+ civic credits through active community participation.",
                 "icon": "🥉",
-                "credits_reward": 20,
-                "requirement": "Accumulate 20 civic credits",
+                "criteria": "Accumulate 20 civic credits",
+                "required_credits": 20,
             },
             {
                 "id": "detail_contributor",
                 "name": "Detail Contributor",
                 "description": "Provided helpful clarification or photo evidence for faster resolution.",
                 "icon": "🔍",
-                "credits_reward": 15,
-                "requirement": "Provide clarification or evidence",
+                "criteria": "Provide clarification or evidence",
+                "required_credits": 15,
             },
             {
                 "id": "community_reporter",
                 "name": "Community Reporter",
                 "description": "Reported 3 or more verified civic issues in your neighborhood.",
                 "icon": "📢",
-                "credits_reward": 30,
-                "requirement": "Submit 3 complaints",
+                "criteria": "Submit 3 complaints",
+                "required_credits": 30,
             },
             {
                 "id": "civic_champion",
                 "name": "Civic Champion",
                 "description": "Achieved 50+ civic credits as an exemplary citizen contributor.",
                 "icon": "🥇",
-                "credits_reward": 50,
-                "requirement": "Accumulate 50 civic credits",
+                "criteria": "Accumulate 50 civic credits",
+                "required_credits": 50,
             },
             {
                 "id": "responsible_citizen",
                 "name": "Responsible Citizen",
                 "description": "Actively tracked a grievance to complete official resolution.",
                 "icon": "🛡️",
-                "credits_reward": 40,
-                "requirement": "Have a complaint reach resolved status",
+                "criteria": "Have a complaint reach resolved status",
+                "required_credits": 40,
             },
         ]
         for b in STANDARD_BADGES:
             b_res = await session.execute(select(BadgeModel).where(BadgeModel.id == b["id"]))
-            if not b_res.scalars().first():
+            existing_b = b_res.scalars().first()
+            if not existing_b:
                 new_badge = BadgeModel(
                     id=b["id"],
                     name=b["name"],
                     description=b["description"],
                     icon=b["icon"],
-                    credits_reward=b["credits_reward"],
-                    requirement=b["requirement"],
+                    criteria=b["criteria"],
+                    required_credits=b["required_credits"],
                     created_at=get_ist_now(),
                 )
                 session.add(new_badge)
                 print(f"[+] Seeded standard badge: {b['id']}")
+            else:
+                existing_b.name = b["name"]
+                existing_b.description = b["description"]
+                existing_b.icon = b["icon"]
+                existing_b.criteria = b["criteria"]
+                existing_b.required_credits = b["required_credits"]
 
         await session.commit()
     print("[SUCCESS] Demo users and badges verified/seeded successfully.")

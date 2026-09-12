@@ -658,6 +658,11 @@ async def seed_data():
 
         await session.commit()
         print("[SUCCESS] Successfully seeded JanSetu AI with 8 departments, demo accounts, and 31 realistic Pune grievances!")
+
+    # Ensure demo accounts and standard badge definitions are seeded
+    from scripts.seed_demo_users import seed_demo_users
+    await seed_demo_users()
+
     await engine.dispose()
 
 
