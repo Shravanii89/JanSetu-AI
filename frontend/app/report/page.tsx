@@ -59,7 +59,7 @@ function ReportFormContent() {
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
         if (parsed.rawText) setRawText(parsed.rawText);
-        if (parsed.locationName) setLocationName(parsed.locationName);
+        if (parsed.locationName || parsed.locationAddress) setLocationName(parsed.locationName || parsed.locationAddress);
         if (parsed.latitude) setLatitude(parsed.latitude);
         if (parsed.longitude) setLongitude(parsed.longitude);
         if (parsed.aiPreview) setAiPreview(parsed.aiPreview);
@@ -115,6 +115,7 @@ function ReportFormContent() {
       const draftPayload = {
         rawText,
         locationName: locationName.trim(),
+        locationAddress: locationName.trim(),
         latitude,
         longitude,
         language,
@@ -144,6 +145,7 @@ function ReportFormContent() {
         raw_text: rawText,
         preferred_language: language,
         location_name: locationName.trim() || undefined,
+        location_address: locationName.trim() || undefined,
         latitude: typeof latitude === "number" && !isNaN(latitude) ? latitude : undefined,
         longitude: typeof longitude === "number" && !isNaN(longitude) ? longitude : undefined,
         client_timestamp: new Date().toISOString(),

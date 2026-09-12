@@ -71,53 +71,22 @@ const PUNE_PINCODE_LOCALITIES: Record<string, string> = {
 };
 
 // Comprehensive, prioritized address formatter for OpenStreetMap Nominatim response
+// Preference order: street/road -> landmark/place -> locality/suburb/village -> city -> district -> state
 export function formatReverseGeocodeAddress(data: any): string {
   if (!data) return "";
   const addr = data.address || {};
   const parts: string[] = [];
 
-  // ----------------------------------------------------
-  // Priority 1: Landmark / Amenity / POI
-  // amenity, building, shop, tourism, office, historic, leisure
-  // ----------------------------------------------------
-  const rawPoi =
-    addr.amenity ||
-    addr.building ||
-    addr.shop ||
-    addr.tourism ||
-    addr.office ||
-    addr.historic ||
-    addr.leisure ||
-    (data.name &&
-    data.addresstype !== "road" &&
-    data.addresstype !== "city" &&
-    data.addresstype !== "postcode" &&
-    data.addresstype !== "county"
-      ? data.name
-      : undefined);
-
-  if (rawPoi && typeof rawPoi === "string") {
-    const cleanPoi = rawPoi.trim();
-    const isLandmarkType =
-      data.category === "amenity" ||
-      data.category === "tourism" ||
-      addr.amenity ||
-      addr.historic ||
-      addr.tourism;
-    if (
-      isLandmarkType &&
-      !cleanPoi.toLowerCase().startsWith("near ") &&
-      !cleanPoi.toLowerCase().startsWith("opp ") &&
-      !cleanPoi.toLowerCase().startsWith("opposite ")
-    ) {
-      parts.push(`Near ${cleanPoi}`);
-    } else {
-      parts.push(cleanPoi);
-    }
-  }
+  const isIncluded = (val: string) => {
+    const lower = val.toLowerCase().trim();
+    return parts.some((p) => {
+      const pLower = p.toLowerCase().trim();
+      return pLower === lower || pLower.includes(lower) || lower.includes(pLower);
+    });
+  };
 
   // ----------------------------------------------------
-  // Priority 2: Street / Road / Pedestrian / Way
+  // Priority 1: street / road / pedestrian / way / highway
   // house_number, road, pedestrian, footway, residential, street
   // ----------------------------------------------------
   const houseNumber = addr.house_number ? addr.house_number.trim() : "";
@@ -128,7 +97,10 @@ export function formatReverseGeocodeAddress(data: any): string {
     addr.footway ||
     addr.path ||
     addr.cycleway ||
-    (addr.residential && addr.residential !== addr.suburb ? addr.residential : undefined);
+    addr.highway ||
+    (addr.residential && addr.residential !== addr.suburb && addr.residential !== addr.neighbourhood
+      ? addr.residential
+      : undefined);
 
   if (road && typeof road === "string") {
     const cleanRoad = road.trim();
@@ -142,22 +114,67 @@ export function formatReverseGeocodeAddress(data: any): string {
   }
 
   // ----------------------------------------------------
-  // Priority 3: Locality / Suburb / Village / Town (Preserve Actual Locality!)
-  // neighbourhood, suburb, village, town, hamlet, city_district
+  // Priority 2: landmark / place / amenity / POI
+  // amenity, building, shop, tourism, office, historic, leisure, place
+  // ----------------------------------------------------
+  const rawPoi =
+    addr.amenity ||
+    addr.building ||
+    addr.shop ||
+    addr.tourism ||
+    addr.office ||
+    addr.historic ||
+    addr.leisure ||
+    addr.place ||
+    (data.name &&
+    data.addresstype !== "road" &&
+    data.addresstype !== "city" &&
+    data.addresstype !== "postcode" &&
+    data.addresstype !== "county" &&
+    data.addresstype !== "state" &&
+    data.addresstype !== "country"
+      ? data.name
+      : undefined);
+
+  if (rawPoi && typeof rawPoi === "string") {
+    const cleanPoi = rawPoi.trim();
+    if (!isIncluded(cleanPoi)) {
+      const isLandmarkType =
+        data.category === "amenity" ||
+        data.category === "tourism" ||
+        addr.amenity ||
+        addr.historic ||
+        addr.tourism;
+      if (
+        isLandmarkType &&
+        !cleanPoi.toLowerCase().startsWith("near ") &&
+        !cleanPoi.toLowerCase().startsWith("opp ") &&
+        !cleanPoi.toLowerCase().startsWith("opposite ")
+      ) {
+        parts.push(`Near ${cleanPoi}`);
+      } else {
+        parts.push(cleanPoi);
+      }
+    }
+  }
+
+  // ----------------------------------------------------
+  // Priority 3: locality / suburb / village / town (Preserve Actual Locality!)
+  // suburb, neighbourhood, village, town, hamlet, city_district, quarter
   // ----------------------------------------------------
   const suburb = addr.suburb || addr.neighbourhood;
   const village = addr.village || addr.town || addr.hamlet;
 
   if (suburb && typeof suburb === "string") {
     const cleanSuburb = suburb.trim();
-    if (!parts.some((p) => p.toLowerCase() === cleanSuburb.toLowerCase())) {
+    if (!isIncluded(cleanSuburb)) {
       parts.push(cleanSuburb);
     }
   }
 
   if (village && typeof village === "string") {
     const cleanVillage = village.trim();
-    if (!parts.some((p) => p.toLowerCase() === cleanVillage.toLowerCase())) {
+    if (!isIncluded(cleanVillage)) {
       parts.push(cleanVillage);
     }
   }
@@ -167,48 +184,41 @@ export function formatReverseGeocodeAddress(data: any): string {
   const postcode = addr.postcode ? addr.postcode.toString().trim() : "";
   if (!suburb && !village && postcode && PUNE_PINCODE_LOCALITIES[postcode]) {
     const pinLocality = PUNE_PINCODE_LOCALITIES[postcode];
-    if (!parts.some((p) => p.toLowerCase() === pinLocality.toLowerCase())) {
+    if (!isIncluded(pinLocality)) {
       parts.push(pinLocality);
     }
   }
 
-  // Also check city_district or subdistrict if still no locality found
+  // Also check city_district, quarter, or subdistrict if still no locality found
   if (parts.length === 0 || (!suburb && !village && !postcode)) {
-    const dist = addr.city_district || addr.quarter;
+    const dist = addr.city_district || addr.quarter || addr.subdistrict;
     if (dist && typeof dist === "string") {
       const cleanDist = dist.trim();
-      if (!parts.some((p) => p.toLowerCase() === cleanDist.toLowerCase())) {
+      if (!isIncluded(cleanDist)) {
         parts.push(cleanDist);
       }
     }
   }
 
   // ----------------------------------------------------
-  // Priority 4: City / District (CRITICAL: Preserve Specific Locality over Broad City)
+  // Priority 4: city (Ensure Pune is clearly anchored)
   // ----------------------------------------------------
-  const hasSpecificLocality = parts.length > 0;
-  const rawCity = addr.city || addr.municipality || addr.county;
-
-  if (hasSpecificLocality) {
-    // If we have a specific locality (e.g. Alandi, Charoli, Kothrud),
-    // anchor to "Pune" rather than a broad municipal name like "Pimpri-Chinchwad"
-    if (!parts.some((p) => p.toLowerCase().includes("pune"))) {
-      parts.push("Pune");
-    }
-  } else {
-    // If no specific street, landmark, or village could be determined:
-    if (rawCity && typeof rawCity === "string") {
-      const cleanCity = rawCity.replace(/ Subdistrict/gi, "").trim();
+  const rawCity = addr.city || addr.municipality;
+  if (rawCity && typeof rawCity === "string") {
+    const cleanCity = rawCity.replace(/ Subdistrict/gi, "").trim();
+    if (!isIncluded(cleanCity)) {
       parts.push(cleanCity);
-      if (!cleanCity.toLowerCase().includes("pune")) {
-        parts.push("Pune");
-      }
-    } else {
-      parts.push("Pune");
     }
   }
 
-  // Clean deduplication while preserving natural order
+  // Always anchor to Pune if not already mentioned
+  if (!parts.some((p) => p.toLowerCase().includes("pune"))) {
+    parts.push("Pune");
+  }
+
+  // ----------------------------------------------------
+  // Clean deduplication while strictly preserving order
+  // ----------------------------------------------------
   const uniqueParts: string[] = [];
   for (const part of parts) {
     const clean = part.trim();
@@ -293,10 +303,7 @@ export default function LocationPicker({
         setFlyToTrigger(Date.now());
 
         // 2. Instantly notify parent with exact GPS coordinates so marker moves and map centers right away
-        const tempDisplay =
-          value && !value.startsWith("Current Location") && !value.startsWith("Detecting")
-            ? value
-            : `Detecting address... (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        const tempDisplay = `Detecting location... (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
         onChange(tempDisplay, lat, lng);
 
         try {
@@ -426,16 +433,18 @@ export default function LocationPicker({
       setGeoError(null);
       setTargetZoom(16);
       setFlyToTrigger(Date.now());
-      // Immediately pass exact coordinates with fallback label so marker updates at once
-      onChange(value || `Selected Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`, lat, lng);
+      // Immediately pass exact coordinates so marker moves to clicked location at once
+      const tempCoordLabel = `Detecting address... (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      onChange(tempCoordLabel, lat, lng);
       try {
         const address = await reverseGeocode(lat, lng);
         onChange(address, lat, lng);
       } catch (err) {
-        onChange(`Location (${lat.toFixed(5)}, ${lng.toFixed(5)})`, lat, lng);
+        console.warn("Reverse geocode failed:", err);
+        onChange(`Selected Location (${lat.toFixed(5)}, ${lng.toFixed(5)})`, lat, lng);
       }
     },
-    [reverseGeocode, onChange, value]
+    [reverseGeocode, onChange]
   );
 
   return (
@@ -563,6 +572,19 @@ export default function LocationPicker({
           </button>
         </div>
       )}
+
+      {/* Subtle user instruction above the map */}
+      <div className="flex items-center justify-between text-xs text-[#667085] px-0.5">
+        <span className="flex items-center gap-1.5 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#F39A32] inline-block animate-pulse"></span>
+          <span>{t("reportPage.clickMapHint") || "Click anywhere on the map to select a location"}</span>
+        </span>
+        {latitude && longitude ? (
+          <span className="text-[11px] text-[#1F5E91] font-medium hidden sm:inline">
+            Location pin active
+          </span>
+        ) : null}
+      </div>
 
       {/* Interactive Leaflet Map */}
       <LocationMap

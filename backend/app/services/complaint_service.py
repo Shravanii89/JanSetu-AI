@@ -42,9 +42,10 @@ class ComplaintService:
         ai_res = await orchestrator.analyze_complaint(data.raw_text, data.preferred_language)
 
         # Allow citizen-provided location override
-        final_location = data.location_name or ai_res.get("extracted_location")
-        if data.location_name:
-            ai_res["extracted_location"] = data.location_name
+        resolved_input_loc = data.location_address or data.location_name or data.location_text
+        final_location = resolved_input_loc or ai_res.get("extracted_location")
+        if resolved_input_loc:
+            ai_res["extracted_location"] = resolved_input_loc
             ai_res["missing_fields"] = [f for f in ai_res.get("missing_fields", []) if f != "location"]
             ai_res["actionability"] = "HIGH"
 
@@ -62,7 +63,7 @@ class ComplaintService:
 
         # Explicitly anchor complaint creation to Indian Standard Time (IST)
         submitted_time = to_ist_naive(getattr(data, "client_timestamp", None)) or get_ist_now()
-        loc_str = data.location_name or data.location_text
+        loc_str = resolved_input_loc
 
         # 4. Save Complaint
         complaint = ComplaintModel(
@@ -341,6 +342,7 @@ class ComplaintService:
             "issue_summary": ticket.issue_summary if ticket else "Civic Complaint",
             "location_name": ticket.location_name if (ticket and ticket.location_name) else getattr(complaint, "location_text", None),
             "location_text": ticket.location_name if (ticket and ticket.location_name) else getattr(complaint, "location_text", None),
+            "location_address": ticket.location_name if (ticket and ticket.location_name) else getattr(complaint, "location_text", None),
             "latitude": ticket.latitude if (ticket and ticket.latitude is not None) else getattr(complaint, "latitude", None),
             "longitude": ticket.longitude if (ticket and ticket.longitude is not None) else getattr(complaint, "longitude", None),
             "resolution_notes": resolved_note,

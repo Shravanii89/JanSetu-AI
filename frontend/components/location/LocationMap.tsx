@@ -91,14 +91,10 @@ function MapController({
 
 // Map click listener component
 function MapEvents({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  const map = useMapEvents({
+  useMapEvents({
     click(e: any) {
       const { lat, lng } = e.latlng;
       onMapClick(lat, lng);
-      // Smoothly zoom slightly into the clicked location if zoom < 15
-      const currentZoom = map.getZoom();
-      const newZoom = Math.max(currentZoom, 15);
-      map.flyTo([lat, lng], newZoom, { duration: 0.8 });
     },
   });
   return null;
@@ -173,9 +169,17 @@ export default function LocationMap({
         <Marker
           position={currentCoords}
           icon={pinIcon}
+          draggable={!readOnly && !!onLocationSelect}
           eventHandlers={{
             click: (e: any) => {
               e.target.openPopup();
+            },
+            dragend: (e: any) => {
+              if (onLocationSelect) {
+                const marker = e.target;
+                const pos = marker.getLatLng();
+                onLocationSelect(pos.lat, pos.lng);
+              }
             },
           }}
         >

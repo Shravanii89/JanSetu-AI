@@ -317,6 +317,7 @@ export const en = {
     useCurrentLocation: "Use my current location",
     detectingLocation: "Detecting location...",
     mapTip: "Tip: You can also click on the map to select a location. The address will be filled automatically.",
+    clickMapHint: "Click anywhere on the map to select a location",
     locationPermissionDenied: "Location permission was denied. Please select your location directly on the map or type it manually.",
     locationUnavailable: "Location information is unavailable. Please select your location on the map or type it manually.",
     locationTimeout: "Location request timed out. Please select on the map or try again.",
