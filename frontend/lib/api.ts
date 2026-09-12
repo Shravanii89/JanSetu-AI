@@ -38,12 +38,15 @@ export async function submitComplaint(data: {
   citizen_email?: string;
   preferred_language?: string;
   location_name?: string;
+  location_address?: string;
   latitude?: number;
   longitude?: number;
   client_timestamp?: string;
 }) {
   const sanitizedPayload = {
     ...data,
+    location_name: data.location_name || data.location_address,
+    location_address: data.location_address || data.location_name,
     latitude:
       typeof data.latitude === "number" && !isNaN(data.latitude)
         ? data.latitude

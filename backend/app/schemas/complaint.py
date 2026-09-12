@@ -16,6 +16,7 @@ class ComplaintCreate(BaseModel):
     preferred_language: str = "en"
     input_channel: str = "WEB"
     location_name: Optional[str] = None
+    location_address: Optional[str] = None
     location_text: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -38,6 +39,7 @@ class ComplaintResponse(BaseModel):
     status: str
     input_channel: str
     location_name: Optional[str] = None
+    location_address: Optional[str] = None
     location_text: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
