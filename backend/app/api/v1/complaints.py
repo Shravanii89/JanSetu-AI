@@ -4,10 +4,14 @@ Handles grievance ingestion, AI understanding, citizen ownership, drafts,
 public tracking, timeline updates, and citizen clarification.
 """
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from typing import Dict, Any, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from app.db.session import get_db
 from app.api.dependencies import get_current_user, get_optional_user, require_roles
@@ -46,11 +50,28 @@ async def submit_complaint(
             content=mve.to_dict(),
         )
     except HTTPException:
+        await db.rollback()
         raise
-    except Exception as e:
+    except IntegrityError as ie:
+        await db.rollback()
+        logger.error(f"Database integrity violation during complaint creation: {ie}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Unable to submit your complaint due to a data conflict. Please try again.",
+        )
+    except SQLAlchemyError as se:
+        await db.rollback()
+        logger.error(f"Database error during complaint creation: {se}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process complaint: {str(e)}",
+            detail="Unable to submit your complaint. Please try again.",
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Unexpected error during complaint creation: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to submit your complaint. Please try again.",
         )
 
 
