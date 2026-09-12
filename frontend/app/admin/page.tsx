@@ -16,10 +16,13 @@ import {
   RefreshCw,
   Eye,
   SlidersHorizontal,
-  ChevronRight,
   X,
   AlertCircle,
   Activity,
+  UserCheck,
+  Phone,
+  RotateCcw,
+  BadgeCheck,
 } from "lucide-react";
 import OfficialNavbar from "../../components/navigation/OfficialNavbar";
 import {
@@ -54,6 +57,7 @@ export default function AdminPage() {
   const [selectedDept, setSelectedDept] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("");
+  const [assignmentFilter, setAssignmentFilter] = useState("");
 
   // Modal / Action State
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
@@ -186,6 +190,48 @@ export default function AdminPage() {
         return <span className="rounded bg-blue-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">P3 Low</span>;
     }
   };
+
+  const getAssignmentBadge = (status: string) => {
+    switch (status) {
+      case "Work in Progress":
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-blue-50 text-blue-700 px-2 py-0.5 font-bold text-[10px] border border-blue-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
+            Work in Progress
+          </span>
+        );
+      case "Assigned":
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-indigo-50 text-indigo-700 px-2 py-0.5 font-bold text-[10px] border border-indigo-200">
+            <CheckCircle2 className="h-2.5 w-2.5 text-indigo-600" />
+            Assigned
+          </span>
+        );
+      case "Resolved":
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 px-2 py-0.5 font-bold text-[10px] border border-emerald-200">
+            <BadgeCheck className="h-2.5 w-2.5 text-emerald-600" />
+            Resolved
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-amber-50 text-amber-700 px-2 py-0.5 font-bold text-[10px] border border-amber-200">
+            <Clock className="h-2.5 w-2.5 text-amber-500" />
+            Unassigned
+          </span>
+        );
+    }
+  };
+
+  const displayedTickets = tickets.filter((t) => {
+    if (!assignmentFilter) return true;
+    if (assignmentFilter === "UNASSIGNED") return t.assignment_status === "Unassigned" || !t.assigned_officer_id;
+    if (assignmentFilter === "ASSIGNED") return t.assignment_status === "Assigned";
+    if (assignmentFilter === "IN_PROGRESS") return t.assignment_status === "Work in Progress" || t.status === "IN_PROGRESS";
+    if (assignmentFilter === "RESOLVED") return t.assignment_status === "Resolved" || t.status === "RESOLVED";
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
@@ -384,12 +430,26 @@ export default function AdminPage() {
                 <option value="P3">P3 Low</option>
               </select>
 
-              {(selectedDept || selectedStatus || selectedPriority || searchQuery) && (
+              {/* Assignment filter */}
+              <select
+                value={assignmentFilter}
+                onChange={(e) => setAssignmentFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white"
+              >
+                <option value="">All Assignments</option>
+                <option value="UNASSIGNED">Unassigned Tickets</option>
+                <option value="ASSIGNED">Assigned Tickets</option>
+                <option value="IN_PROGRESS">Work in Progress</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+
+              {(selectedDept || selectedStatus || selectedPriority || assignmentFilter || searchQuery) && (
                 <button
                   onClick={() => {
                     setSelectedDept("");
                     setSelectedStatus("");
                     setSelectedPriority("");
+                    setAssignmentFilter("");
                     setSearchQuery("");
                   }}
                   className="text-xs font-bold text-rose-600 hover:text-rose-800 px-2"
@@ -409,20 +469,21 @@ export default function AdminPage() {
                   <th className="py-3 px-4">Summary</th>
                   <th className="py-3 px-4">Department</th>
                   <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Assignment</th>
+                  <th className="py-3 px-4">Staff</th>
                   <th className="py-3 px-4">SLA State</th>
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {tickets.length === 0 ? (
+                {displayedTickets.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
+                    <td colSpan={8} className="text-center py-8 text-slate-400">
                       No complaints match the selected filters.
                     </td>
                   </tr>
                 ) : (
-                  tickets.map((t) => (
+                  displayedTickets.map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => handleOpenTicketDetail(t.id)}
@@ -446,9 +507,16 @@ export default function AdminPage() {
                         {getPriorityBadge(t.priority)}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 border border-slate-200 text-[11px]">
-                          {t.status}
-                        </span>
+                        {getAssignmentBadge(t.assignment_status || (t.assigned_officer_id ? "Assigned" : "Unassigned"))}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {t.assigned_officer_name ? (
+                          <div className="font-semibold text-slate-800 truncate max-w-[130px]">
+                            {t.assigned_officer_name}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">Unassigned</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap font-semibold">
                         <span
@@ -575,6 +643,124 @@ export default function AdminPage() {
                   {formatDateIST(selectedTicket.created_at)}
                 </span>
               </div>
+            </div>
+
+            {/* Departmental Personnel Assignment Oversight */}
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                  <UserCheck className="h-4 w-4 text-indigo-600" />
+                  Departmental Personnel Assignment Oversight
+                </span>
+                {getAssignmentBadge(
+                  selectedTicket.assignment?.current_assignment?.assignment_status === "IN_PROGRESS"
+                    ? "Work in Progress"
+                    : selectedTicket.assignment?.current_assignment?.assignment_status === "RESOLVED"
+                    ? "Resolved"
+                    : selectedTicket.assignment?.current_assignment
+                    ? "Assigned"
+                    : "Unassigned"
+                )}
+              </div>
+
+              {selectedTicket.assignment?.current_assignment ? (
+                <div className="space-y-3">
+                  <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Assigned Personnel</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block text-sm">
+                        {selectedTicket.assignment.current_assignment.personnel?.full_name}
+                      </span>
+                      <span className="text-[11px] text-indigo-700 font-medium">
+                        {selectedTicket.assignment.current_assignment.personnel?.designation || "Field Officer"}
+                      </span>
+                      {selectedTicket.assignment.current_assignment.personnel?.employee_id && (
+                        <span className="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded ml-1">
+                          {selectedTicket.assignment.current_assignment.personnel.employee_id}
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Official Contact Number</span>
+                      <div className="font-mono font-bold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                        <Phone className="h-3 w-3 text-slate-400" />
+                        <span>{selectedTicket.assignment.current_assignment.personnel?.phone || selectedTicket.assignment.current_assignment.personnel?.mobile_number}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-0.5 block">
+                        Ward: {selectedTicket.assignment.current_assignment.personnel?.ward || selectedTicket.ward || "Zonal"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Assigned By</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {selectedTicket.assignment.current_assignment.assigned_by_name || "Department Dispatcher"}
+                      </span>
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        {formatDateIST(selectedTicket.assignment.current_assignment.assigned_at)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Field Work Timing</span>
+                      <span className="font-semibold text-slate-800 mt-0.5 block">
+                        {selectedTicket.assignment.current_assignment.started_at ? (
+                          <span className="text-blue-700">Started: {formatDateIST(selectedTicket.assignment.current_assignment.started_at)}</span>
+                        ) : (
+                          <span className="text-slate-400 italic">Work not yet started</span>
+                        )}
+                      </span>
+                      {selectedTicket.assignment.current_assignment.completed_at && (
+                        <span className="text-[10px] text-emerald-700 block mt-0.5">
+                          Completed: {formatDateIST(selectedTicket.assignment.current_assignment.completed_at)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedTicket.assignment.current_assignment.assignment_note && (
+                    <div className="text-xs text-slate-600 bg-white/70 p-2.5 rounded-lg border border-slate-100">
+                      <span className="font-bold text-slate-500 text-[10px] uppercase block mb-0.5">Dispatcher Note:</span>
+                      &ldquo;{selectedTicket.assignment.current_assignment.assignment_note}&rdquo;
+                    </div>
+                  )}
+
+                  {/* Reassignment History */}
+                  {selectedTicket.assignment.history && selectedTicket.assignment.history.length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+                        Reassignment Audit History ({selectedTicket.assignment.history.length})
+                      </span>
+                      <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                        {selectedTicket.assignment.history.map((h: any) => (
+                          <div key={h.id} className="bg-white p-2.5 rounded-lg border border-slate-200 text-xs flex items-start justify-between gap-3">
+                            <div>
+                              <div className="font-bold text-slate-800">
+                                {h.personnel?.full_name} ({h.personnel?.designation || "Staff"})
+                              </div>
+                              {h.reassignment_reason && (
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  <span className="font-semibold text-slate-600">Reassignment Reason:</span> {h.reassignment_reason}
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-right text-[10px] text-slate-400 whitespace-nowrap">
+                              <span className="font-semibold uppercase text-slate-500">{h.assignment_status}</span>
+                              <div>{formatDateIST(h.assigned_at || h.created_at)}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-xs text-slate-500 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span>No departmental personnel currently assigned to this ticket. Field dispatch is pending.</span>
+                </div>
+              )}
             </div>
 
             {/* Raw Grievance Text */}

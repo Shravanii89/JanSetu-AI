@@ -16,6 +16,12 @@ from app.schemas.ticket import (
     TicketReroute,
     TicketEscalate,
 )
+from app.schemas.assignment import (
+    TicketAssignRequest,
+    TicketReassignRequest,
+    TicketAssignmentStatusUpdate,
+    TicketAssignmentResponse,
+)
 from app.services.ticket_service import ticket_service
 from app.rules.roles import MUNICIPAL_ADMIN, DEPARTMENT_OFFICER, COLLECTOR
 
@@ -159,3 +165,100 @@ async def escalate_ticket(
         )
     except PermissionError as pe:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+
+
+@router.post("/{ticket_id}/assign")
+async def assign_ticket_personnel(
+    ticket_id: str,
+    body: TicketAssignRequest,
+    current_user: UserModel = Depends(require_roles(MUNICIPAL_ADMIN, DEPARTMENT_OFFICER)),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Assigns departmental personnel to handle an open ticket.
+    Enforces department isolation: Officer can only assign personnel within their authorized department.
+    """
+    try:
+        return await ticket_service.assign_personnel(
+            ticket_id=ticket_id,
+            personnel_id=body.personnel_id,
+            assignment_note=body.assignment_note,
+            current_user=current_user,
+            db=db,
+        )
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+
+
+@router.get("/{ticket_id}/assignment")
+async def get_ticket_assignment(
+    ticket_id: str,
+    current_user: UserModel = Depends(require_roles(MUNICIPAL_ADMIN, DEPARTMENT_OFFICER, COLLECTOR)),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Retrieves current active assignment and historical reassignments for a ticket.
+    """
+    try:
+        return await ticket_service.get_assignment(
+            ticket_id=ticket_id,
+            current_user=current_user,
+            db=db,
+        )
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+
+@router.patch("/{ticket_id}/assignment/status")
+async def update_assignment_status(
+    ticket_id: str,
+    body: TicketAssignmentStatusUpdate,
+    current_user: UserModel = Depends(require_roles(MUNICIPAL_ADMIN, DEPARTMENT_OFFICER)),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Updates work status for the active assignment (e.g. Work in Progress, Resolved).
+    Records started_at or completed_at timestamps in IST.
+    """
+    try:
+        return await ticket_service.update_assignment_status(
+            ticket_id=ticket_id,
+            new_status=body.status,
+            note=body.note,
+            current_user=current_user,
+            db=db,
+        )
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+
+
+@router.post("/{ticket_id}/reassign")
+async def reassign_ticket_personnel(
+    ticket_id: str,
+    body: TicketReassignRequest,
+    current_user: UserModel = Depends(require_roles(MUNICIPAL_ADMIN, DEPARTMENT_OFFICER)),
+    db: AsyncSession = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Reassigns an open ticket to another departmental personnel with mandatory audit reason.
+    """
+    try:
+        return await ticket_service.reassign_personnel(
+            ticket_id=ticket_id,
+            personnel_id=body.personnel_id,
+            reassignment_reason=body.reassignment_reason,
+            assignment_note=body.assignment_note,
+            current_user=current_user,
+            db=db,
+        )
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+

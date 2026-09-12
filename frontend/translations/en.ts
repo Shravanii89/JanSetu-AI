@@ -382,6 +382,7 @@ export const en = {
     statusResolved: "Resolved",
     statusInProgress: "In Progress",
     statusAssigned: "Assigned to Crew",
+    statusAssignedDept: "Assigned to Department",
     statusNeedsClarification: "Awaiting Citizen Info",
     statusEscalated: "Escalated",
 
