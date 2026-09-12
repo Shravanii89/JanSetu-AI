@@ -381,11 +381,12 @@ export const mr: Translations = {
     clarificationSuccess: "माहिती यशस्वीरित्या सादर झाली. आपली तक्रार आता क्षेत्रीय पथकाकडे पाठवण्यात आली आहे!",
 
     // Status Badges
-    statusResolved: "निवारण झाले",
-    statusInProgress: "काम प्रगतीपथावर",
+    statusResolved: "निकाली काढले",
+    statusInProgress: "काम सुरू आहे",
     statusAssigned: "पथकाकडे सोपवले",
-    statusNeedsClarification: "नागरिक माहितीची प्रतीक्षा",
-    statusEscalated: "वरिष्ठांकडे वर्ग",
+    statusAssignedDept: "विभागाकडे सोपवले",
+    statusNeedsClarification: "नागरिकांची माहिती आवश्यक",
+    statusEscalated: "वरिष्ठ अधिकाऱ्यांकडे वर्ग",
 
     // Priority Badges
     prioP0: "P0 अतितातडीची",

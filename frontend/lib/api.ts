@@ -255,3 +255,49 @@ export async function getPriorityAnalytics() {
 export async function getHotspots() {
   return apiClient<any[]>("/map/hotspots");
 }
+
+// 6. Personnel Assignment & Department Dispatch
+export async function getDepartmentPersonnel(departmentId: string) {
+  return apiClient<any[]>(`/departments/${encodeURIComponent(departmentId)}/personnel`);
+}
+
+export async function assignTicketPersonnel(ticketId: string, personnelId: string, assignmentNote?: string) {
+  return apiClient<any>(`/tickets/${ticketId}/assign`, {
+    method: "POST",
+    body: JSON.stringify({
+      personnel_id: personnelId,
+      assignment_note: assignmentNote,
+    }),
+  });
+}
+
+export async function getTicketAssignment(ticketId: string) {
+  return apiClient<any>(`/tickets/${ticketId}/assignment`);
+}
+
+export async function updateAssignmentStatus(ticketId: string, status: string, note?: string) {
+  return apiClient<any>(`/tickets/${ticketId}/assignment/status`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status,
+      note,
+    }),
+  });
+}
+
+export async function reassignTicketPersonnel(
+  ticketId: string,
+  personnelId: string,
+  reassignmentReason: string,
+  assignmentNote?: string
+) {
+  return apiClient<any>(`/tickets/${ticketId}/reassign`, {
+    method: "POST",
+    body: JSON.stringify({
+      personnel_id: personnelId,
+      reassignment_reason: reassignmentReason,
+      assignment_note: assignmentNote,
+    }),
+  });
+}
+

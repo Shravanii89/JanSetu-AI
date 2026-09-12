@@ -4,6 +4,7 @@ Enforces server-side RBAC, department isolation, deterministic state transitions
 """
 
 import json
+import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,8 @@ from app.models.sla import SLAModel
 from app.models.ai_analysis import AIAnalysisModel
 from app.models.audit_log import AuditLogModel
 from app.models.escalation import EscalationModel
+from app.models.assignment import AssignmentModel
+from app.models.complaint_update import ComplaintUpdateModel
 from app.models.user import UserModel
 from app.rules.ticket_states import can_transition, RESOLVED, CLOSED, IN_PROGRESS, ESCALATED
 from app.rules.departments import is_valid_department
@@ -42,9 +45,10 @@ class TicketService:
         Department officers CANNOT see other departments' tickets.
         """
         query = (
-            select(TicketModel, ComplaintModel, SLAModel)
+            select(TicketModel, ComplaintModel, SLAModel, UserModel)
             .join(ComplaintModel, TicketModel.complaint_id == ComplaintModel.id)
             .outerjoin(SLAModel, TicketModel.id == SLAModel.ticket_id)
+            .outerjoin(UserModel, TicketModel.assigned_officer_id == UserModel.id)
         )
 
         conditions = []
@@ -89,7 +93,7 @@ class TicketService:
         rows = result.all()
 
         tickets_data = []
-        for ticket, complaint, sla in rows:
+        for ticket, complaint, sla, assigned_user in rows:
             sla_info = None
             if sla:
                 current_sla_status = evaluate_sla_status(
@@ -106,6 +110,25 @@ class TicketService:
                     "is_paused": sla.is_paused,
                 }
 
+            assignment_status = "Unassigned"
+            if ticket.status == "RESOLVED":
+                assignment_status = "Resolved"
+            elif ticket.status == "IN_PROGRESS":
+                assignment_status = "Work in Progress"
+            elif ticket.assigned_officer_id:
+                assignment_status = "Assigned"
+
+            assigned_personnel_brief = None
+            if assigned_user:
+                assigned_personnel_brief = {
+                    "id": str(assigned_user.id),
+                    "full_name": assigned_user.full_name,
+                    "designation": assigned_user.designation or "Field Officer",
+                    "employee_id": assigned_user.employee_id,
+                    "phone": assigned_user.phone,
+                    "ward": assigned_user.ward,
+                }
+
             tickets_data.append({
                 "id": str(ticket.id),
                 "complaint_id": str(ticket.complaint_id),
@@ -114,6 +137,9 @@ class TicketService:
                 "citizen_name": complaint.citizen_name,
                 "department_id": ticket.department_id,
                 "assigned_officer_id": ticket.assigned_officer_id,
+                "assigned_officer_name": assigned_user.full_name if assigned_user else None,
+                "assignment_status": assignment_status,
+                "assigned_personnel": assigned_personnel_brief,
                 "incident_id": ticket.incident_id,
                 "status": ticket.status,
                 "priority": ticket.priority,
@@ -213,6 +239,9 @@ class TicketService:
             for a in audits
         ]
 
+        # Fetch current assignment
+        assignment_info = await self.get_assignment(ticket_id, current_user, db)
+
         return {
             "id": str(ticket.id),
             "complaint_id": str(ticket.complaint_id),
@@ -243,6 +272,7 @@ class TicketService:
             "sla": sla_info,
             "ai_analysis": ai_info,
             "audit_trail": audit_trail,
+            "assignment": assignment_info,
         }
 
     async def update_status(
@@ -283,6 +313,38 @@ class TicketService:
                 sla.resolved_at = ticket.resolved_at
                 sla.status = "RESOLVED"
                 sla.updated_at = now_ist
+
+            # Synchronize active personnel assignment to RESOLVED
+            assign_res = await db.execute(
+                select(AssignmentModel)
+                .where(
+                    and_(
+                        AssignmentModel.ticket_id == ticket.id,
+                        AssignmentModel.assignment_status.in_(["ASSIGNED", "IN_PROGRESS"])
+                    )
+                )
+            )
+            for active_assign in assign_res.scalars().all():
+                active_assign.assignment_status = "RESOLVED"
+                active_assign.completed_at = now_ist
+                active_assign.updated_at = now_ist
+
+        elif new_status == IN_PROGRESS:
+            # Synchronize active personnel assignment to IN_PROGRESS
+            assign_res = await db.execute(
+                select(AssignmentModel)
+                .where(
+                    and_(
+                        AssignmentModel.ticket_id == ticket.id,
+                        AssignmentModel.assignment_status == "ASSIGNED"
+                    )
+                )
+            )
+            for active_assign in assign_res.scalars().all():
+                active_assign.assignment_status = "IN_PROGRESS"
+                if not active_assign.started_at:
+                    active_assign.started_at = now_ist
+                active_assign.updated_at = now_ist
 
         # Mirror status on parent complaint
         c_res = await db.execute(select(ComplaintModel).where(ComplaintModel.id == ticket.complaint_id))
@@ -445,5 +507,371 @@ class TicketService:
 
         return {"id": ticket_id, "is_escalated": True, "escalated_to": escalated_to}
 
+    async def assign_personnel(
+        self,
+        ticket_id: str,
+        personnel_id: str,
+        assignment_note: Optional[str],
+        current_user: UserModel,
+        db: AsyncSession,
+    ) -> Dict[str, Any]:
+        """
+        Assigns departmental personnel to a ticket.
+        Enforces department isolation: Department Officer can only assign personnel
+        within their own department.
+        """
+        ticket_res = await db.execute(select(TicketModel).where(TicketModel.id == ticket_id))
+        ticket = ticket_res.scalars().first()
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        # RBAC and department isolation
+        if current_user.role == DEPARTMENT_OFFICER:
+            if ticket.department_id != current_user.department_id:
+                raise PermissionError(f"Access denied: Ticket belongs to {ticket.department_id}")
+        elif current_user.role != MUNICIPAL_ADMIN:
+            raise PermissionError("Unauthorized role for personnel assignment")
+
+        # Validate personnel
+        user_res = await db.execute(select(UserModel).where(UserModel.id == personnel_id))
+        personnel = user_res.scalars().first()
+        if not personnel:
+            raise ValueError("Department personnel not found")
+
+        if not personnel.is_active:
+            raise ValueError("Selected personnel is not currently active")
+
+        if personnel.department_id != ticket.department_id:
+            raise ValueError(f"Personnel belongs to {personnel.department_id}, but ticket belongs to {ticket.department_id}")
+
+        now_ist = get_ist_now()
+
+        # Mark any previous active assignments as REASSIGNED
+        prev_assign_res = await db.execute(
+            select(AssignmentModel).where(
+                and_(
+                    AssignmentModel.ticket_id == ticket.id,
+                    AssignmentModel.assignment_status.in_(["ASSIGNED", "IN_PROGRESS"])
+                )
+            )
+        )
+        for prev in prev_assign_res.scalars().all():
+            prev.assignment_status = "REASSIGNED"
+            prev.updated_at = now_ist
+
+        # Create new persistent assignment
+        assignment = AssignmentModel(
+            id=str(uuid.uuid4()),
+            ticket_id=ticket.id,
+            personnel_id=personnel.id,
+            officer_id=personnel.id,
+            assigned_by=str(current_user.id),
+            assigned_by_id=str(current_user.id),
+            notes=assignment_note,
+            assignment_note=assignment_note,
+            assignment_status="ASSIGNED",
+            assigned_at=now_ist,
+            created_at=now_ist,
+            updated_at=now_ist,
+        )
+        db.add(assignment)
+
+        # Update ticket assigned officer and status
+        ticket.assigned_officer_id = personnel.id
+        if ticket.status in ["NEW", "READY_FOR_ROUTING", "AI_ANALYZED"]:
+            ticket.status = "ASSIGNED"
+        ticket.updated_at = now_ist
+
+        # Mirror status on parent complaint if in initial state
+        c_res = await db.execute(select(ComplaintModel).where(ComplaintModel.id == ticket.complaint_id))
+        complaint = c_res.scalars().first()
+        if complaint:
+            if complaint.status in ["NEW", "READY_FOR_ROUTING", "AI_ANALYZED"]:
+                complaint.status = "ASSIGNED"
+            complaint.updated_at = now_ist
+
+            # Add citizen visible update
+            update_log = ComplaintUpdateModel(
+                complaint_id=complaint.id,
+                actor_id=str(current_user.id),
+                actor_role=current_user.role,
+                status="ASSIGNED",
+                message=f"Assigned to {personnel.full_name} ({personnel.designation or 'Field Officer'}), {ticket.department_id.replace('_', ' ').title()} Department.",
+                internal_note=assignment_note,
+                created_at=now_ist,
+            )
+            db.add(update_log)
+
+        # Audit log
+        audit = AuditLogModel(
+            entity_name="ticket",
+            entity_id=ticket_id,
+            action="PERSONNEL_ASSIGNED",
+            actor_type=current_user.role,
+            actor_id=str(current_user.id),
+            new_state=json.dumps({
+                "personnel_id": personnel.id,
+                "personnel_name": personnel.full_name,
+                "designation": personnel.designation,
+                "note": assignment_note,
+            }),
+        )
+        db.add(audit)
+        await db.commit()
+
+        return await self.get_assignment(ticket_id, current_user, db)
+
+    async def get_assignment(
+        self,
+        ticket_id: str,
+        current_user: UserModel,
+        db: AsyncSession,
+    ) -> Dict[str, Any]:
+        """Retrieves current assignment and full reassignment history for a ticket."""
+        ticket_res = await db.execute(select(TicketModel).where(TicketModel.id == ticket_id))
+        ticket = ticket_res.scalars().first()
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        if current_user.role == DEPARTMENT_OFFICER and ticket.department_id != current_user.department_id:
+            raise PermissionError(f"Access denied: Ticket belongs to {ticket.department_id}")
+
+        assignments_res = await db.execute(
+            select(AssignmentModel)
+            .where(AssignmentModel.ticket_id == ticket_id)
+            .order_by(desc(AssignmentModel.created_at))
+        )
+        assignments = assignments_res.scalars().all()
+
+        current_assign = None
+        history = []
+
+        for a in assignments:
+            p_res = await db.execute(select(UserModel).where(UserModel.id == a.personnel_id))
+            p = p_res.scalars().first()
+
+            assigner_res = await db.execute(select(UserModel).where(UserModel.id == a.assigned_by))
+            assigner = assigner_res.scalars().first()
+
+            detail = {
+                "id": str(a.id),
+                "ticket_id": str(a.ticket_id),
+                "personnel_id": str(a.personnel_id) if a.personnel_id else None,
+                "personnel": {
+                    "id": str(p.id),
+                    "full_name": p.full_name,
+                    "employee_id": p.employee_id,
+                    "designation": p.designation,
+                    "department_id": p.department_id,
+                    "phone": p.phone,
+                    "mobile_number": p.phone,
+                    "ward": p.ward,
+                    "is_active": p.is_active,
+                } if p else None,
+                "assigned_by": str(a.assigned_by) if a.assigned_by else None,
+                "assigned_by_name": assigner.full_name if assigner else "Department Dispatcher",
+                "assigned_at": format_ist_iso(a.assigned_at),
+                "started_at": format_ist_iso(a.started_at) if a.started_at else None,
+                "completed_at": format_ist_iso(a.completed_at) if a.completed_at else None,
+                "assignment_status": a.assignment_status,
+                "assignment_note": a.assignment_note or a.notes,
+                "reassignment_reason": a.reassignment_reason,
+                "created_at": format_ist_iso(a.created_at),
+                "updated_at": format_ist_iso(a.updated_at),
+            }
+
+            if a.assignment_status in ["ASSIGNED", "IN_PROGRESS", "RESOLVED"] and current_assign is None:
+                current_assign = detail
+            else:
+                history.append(detail)
+
+        return {
+            "ticket_id": ticket_id,
+            "current_assignment": current_assign,
+            "history": history,
+        }
+
+    async def update_assignment_status(
+        self,
+        ticket_id: str,
+        new_status: str,
+        note: Optional[str],
+        current_user: UserModel,
+        db: AsyncSession,
+    ) -> Dict[str, Any]:
+        """
+        Updates assignment status (e.g. to IN_PROGRESS or RESOLVED).
+        Sets started_at or completed_at timestamps in IST.
+        """
+        ticket_res = await db.execute(select(TicketModel).where(TicketModel.id == ticket_id))
+        ticket = ticket_res.scalars().first()
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        if current_user.role == DEPARTMENT_OFFICER and ticket.department_id != current_user.department_id:
+            raise PermissionError(f"Access denied: Ticket belongs to {ticket.department_id}")
+
+        assign_res = await db.execute(
+            select(AssignmentModel)
+            .where(
+                and_(
+                    AssignmentModel.ticket_id == ticket_id,
+                    AssignmentModel.assignment_status.in_(["ASSIGNED", "IN_PROGRESS"])
+                )
+            )
+            .order_by(desc(AssignmentModel.created_at))
+        )
+        assignment = assign_res.scalars().first()
+        if not assignment:
+            raise ValueError("No active personnel assignment found for this ticket")
+
+        now_ist = get_ist_now()
+
+        if new_status == "IN_PROGRESS":
+            assignment.assignment_status = "IN_PROGRESS"
+            if not assignment.started_at:
+                assignment.started_at = now_ist
+            assignment.updated_at = now_ist
+            ticket.status = "IN_PROGRESS"
+            ticket.updated_at = now_ist
+
+            c_res = await db.execute(select(ComplaintModel).where(ComplaintModel.id == ticket.complaint_id))
+            complaint = c_res.scalars().first()
+            if complaint:
+                complaint.status = "IN_PROGRESS"
+                complaint.updated_at = now_ist
+                update_log = ComplaintUpdateModel(
+                    complaint_id=complaint.id,
+                    actor_id=str(current_user.id),
+                    actor_role=current_user.role,
+                    status="IN_PROGRESS",
+                    message="Field operations initiated by assigned personnel. Work in Progress.",
+                    internal_note=note,
+                    created_at=now_ist,
+                )
+                db.add(update_log)
+
+        elif new_status == "RESOLVED":
+            assignment.assignment_status = "RESOLVED"
+            assignment.completed_at = now_ist
+            assignment.updated_at = now_ist
+            await self.update_status(ticket_id, "RESOLVED", note, current_user, db)
+
+        audit = AuditLogModel(
+            entity_name="ticket",
+            entity_id=ticket_id,
+            action="ASSIGNMENT_STATUS_CHANGED",
+            actor_type=current_user.role,
+            actor_id=str(current_user.id),
+            new_state=json.dumps({"status": new_status, "note": note}),
+        )
+        db.add(audit)
+        await db.commit()
+
+        return await self.get_assignment(ticket_id, current_user, db)
+
+    async def reassign_personnel(
+        self,
+        ticket_id: str,
+        personnel_id: str,
+        reassignment_reason: str,
+        assignment_note: Optional[str],
+        current_user: UserModel,
+        db: AsyncSession,
+    ) -> Dict[str, Any]:
+        """
+        Reassigns an open ticket to different personnel with mandatory reason.
+        """
+        ticket_res = await db.execute(select(TicketModel).where(TicketModel.id == ticket_id))
+        ticket = ticket_res.scalars().first()
+        if not ticket:
+            raise ValueError("Ticket not found")
+
+        if current_user.role == DEPARTMENT_OFFICER and ticket.department_id != current_user.department_id:
+            raise PermissionError(f"Access denied: Ticket belongs to {ticket.department_id}")
+
+        user_res = await db.execute(select(UserModel).where(UserModel.id == personnel_id))
+        personnel = user_res.scalars().first()
+        if not personnel:
+            raise ValueError("Department personnel not found")
+
+        if not personnel.is_active:
+            raise ValueError("Selected personnel is not currently active")
+
+        if personnel.department_id != ticket.department_id:
+            raise ValueError(f"Personnel belongs to {personnel.department_id}, but ticket belongs to {ticket.department_id}")
+
+        now_ist = get_ist_now()
+
+        # Mark current assignment as REASSIGNED with reason
+        prev_assign_res = await db.execute(
+            select(AssignmentModel).where(
+                and_(
+                    AssignmentModel.ticket_id == ticket.id,
+                    AssignmentModel.assignment_status.in_(["ASSIGNED", "IN_PROGRESS"])
+                )
+            ).order_by(desc(AssignmentModel.created_at))
+        )
+        prev_assignment = prev_assign_res.scalars().first()
+        if prev_assignment:
+            prev_assignment.assignment_status = "REASSIGNED"
+            prev_assignment.reassignment_reason = reassignment_reason
+            prev_assignment.updated_at = now_ist
+
+        # Create new assignment
+        assignment = AssignmentModel(
+            id=str(uuid.uuid4()),
+            ticket_id=ticket.id,
+            personnel_id=personnel.id,
+            officer_id=personnel.id,
+            assigned_by=str(current_user.id),
+            assigned_by_id=str(current_user.id),
+            notes=assignment_note,
+            assignment_note=assignment_note,
+            assignment_status="ASSIGNED",
+            assigned_at=now_ist,
+            created_at=now_ist,
+            updated_at=now_ist,
+        )
+        db.add(assignment)
+
+        ticket.assigned_officer_id = personnel.id
+        ticket.status = "ASSIGNED"
+        ticket.updated_at = now_ist
+
+        c_res = await db.execute(select(ComplaintModel).where(ComplaintModel.id == ticket.complaint_id))
+        complaint = c_res.scalars().first()
+        if complaint:
+            complaint.status = "ASSIGNED"
+            complaint.updated_at = now_ist
+            update_log = ComplaintUpdateModel(
+                complaint_id=complaint.id,
+                actor_id=str(current_user.id),
+                actor_role=current_user.role,
+                status="ASSIGNED",
+                message=f"Reassigned to {personnel.full_name} ({personnel.designation or 'Field Officer'}). Reason: {reassignment_reason}",
+                internal_note=assignment_note,
+                created_at=now_ist,
+            )
+            db.add(update_log)
+
+        audit = AuditLogModel(
+            entity_name="ticket",
+            entity_id=ticket_id,
+            action="PERSONNEL_REASSIGNED",
+            actor_type=current_user.role,
+            actor_id=str(current_user.id),
+            new_state=json.dumps({
+                "personnel_id": personnel.id,
+                "personnel_name": personnel.full_name,
+                "reassignment_reason": reassignment_reason,
+            }),
+        )
+        db.add(audit)
+        await db.commit()
+
+        return await self.get_assignment(ticket_id, current_user, db)
+
 
 ticket_service = TicketService()
+

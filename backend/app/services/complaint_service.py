@@ -19,7 +19,10 @@ from app.models.clarification import ClarificationModel
 from app.models.audit_log import AuditLogModel
 from app.models.complaint_update import ComplaintUpdateModel
 from app.models.complaint_draft import ComplaintDraftModel
+from app.models.user import UserModel
+from app.models.assignment import AssignmentModel
 from app.schemas.complaint import ComplaintCreate
+
 from app.core.time import get_ist_now, format_ist_iso, to_ist_naive
 from app.ai.pipeline.orchestrator import orchestrator
 from app.rules.sla_policy import calculate_deadlines, evaluate_sla_status
@@ -287,6 +290,42 @@ class ComplaintService:
             else ("Official resolution completed. Field team maintenance verified." if is_resolved else None)
         )
 
+        # Compute privacy-safe assigned municipal personnel for citizen view
+        assigned_personnel = None
+
+        if ticket and ticket.assigned_officer_id:
+            user_res = await db.execute(select(UserModel).where(UserModel.id == ticket.assigned_officer_id))
+            officer_user = user_res.scalars().first()
+            if officer_user:
+                assign_res = await db.execute(
+                    select(AssignmentModel)
+                    .where(AssignmentModel.ticket_id == ticket.id)
+                    .order_by(AssignmentModel.created_at.desc())
+                )
+                active_assign = assign_res.scalars().first()
+
+                work_status = "Assigned"
+                if active_assign and active_assign.assignment_status == "IN_PROGRESS":
+                    work_status = "Work in Progress"
+                elif active_assign and active_assign.assignment_status == "RESOLVED":
+                    work_status = "Resolved"
+                elif effective_status == "IN_PROGRESS":
+                    work_status = "Work in Progress"
+                elif is_resolved:
+                    work_status = "Resolved"
+
+                assigned_dt = active_assign.assigned_at if (active_assign and active_assign.assigned_at) else (active_assign.created_at if active_assign else ticket.created_at)
+                dept_name = ticket.department_id.replace("_", " ").title() + " Department" if ticket.department_id else "Municipal Department"
+
+                assigned_personnel = {
+                    "name": officer_user.full_name,
+                    "designation": officer_user.designation or "Field Maintenance Officer",
+                    "department": dept_name,
+                    "official_contact": officer_user.phone or "+91 020 2550 1000",
+                    "assigned_date": format_ist_iso(assigned_dt),
+                    "work_status": work_status,
+                }
+
         return {
             "id": str(complaint.id),
             "tracking_number": complaint.tracking_number,
@@ -308,6 +347,7 @@ class ComplaintService:
             "sla": sla_data,
             "clarifications": clarif_list,
             "timeline": timeline,
+            "assigned_personnel": assigned_personnel,
             "ai_analysis": {
                 "extracted_issue": analysis.extracted_issue if analysis else "",
                 "confidence_score": analysis.confidence_score if analysis else 0.9,
@@ -317,6 +357,7 @@ class ComplaintService:
                 "explanation": analysis.explanation if analysis else "",
             } if analysis else None,
         }
+
 
     async def get_by_tracking_or_id(self, identifier: str, db: AsyncSession) -> Optional[Dict[str, Any]]:
         """Retrieves full complaint details for public tracking with case-insensitive matching."""

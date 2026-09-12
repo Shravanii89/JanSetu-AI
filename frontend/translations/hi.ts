@@ -381,11 +381,12 @@ export const hi: Translations = {
     clarificationSuccess: "स्पष्टीकरण सफलतापूर्वक जमा किया गया। आपकी शिकायत अब फील्ड टीम को भेज दी गई है!",
 
     // Status Badges
-    statusResolved: "निवारित",
-    statusInProgress: "प्रगति पर",
+    statusResolved: "समाधान हुआ",
+    statusInProgress: "प्रगति पर है",
     statusAssigned: "दल को सौंपा गया",
-    statusNeedsClarification: "नागरिक जानकारी की प्रतीक्षा",
-    statusEscalated: "उच्च स्तर पर अग्रेषित",
+    statusAssignedDept: "विभाग को सौंपा गया",
+    statusNeedsClarification: "नागरिक जानकारी प्रतीक्षित",
+    statusEscalated: "अधिकारी को अग्रेषित",
 
     // Priority Badges
     prioP0: "P0 आपातकालीन",

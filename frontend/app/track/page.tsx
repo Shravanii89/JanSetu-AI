@@ -73,6 +73,14 @@ interface GrievanceRecord {
     employee_id?: string;
     contact?: string;
   };
+  assigned_personnel?: {
+    name: string;
+    designation: string;
+    department: string;
+    official_contact: string;
+    assigned_date: string;
+    work_status: string;
+  } | null;
   submitted_date: string;
   last_updated_date: string;
   sla: {
@@ -575,11 +583,8 @@ export default function TrackPage() {
       ward: data.ward || "Pune Central",
       priority: (data.priority as any) || "P2",
       status: (status as any) || "IN_PROGRESS",
-      assigned_officer: data.assigned_officer || {
-        name: "Pune Municipal Officer",
-        designation: "Zonal Field Executive",
-        employee_id: "PMC-OFFICER",
-      },
+      assigned_officer: data.assigned_officer || null,
+      assigned_personnel: data.assigned_personnel || null,
       submitted_date: data.created_at || new Date().toISOString(),
       last_updated_date: data.updated_at || data.created_at || new Date().toISOString(),
       sla: data.sla
@@ -846,7 +851,7 @@ export default function TrackPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, record?: GrievanceRecord | null) => {
     switch (status) {
       case "RESOLVED":
       case "CLOSED":
@@ -863,13 +868,31 @@ export default function TrackPage() {
             <span>{t("trackPage.statusInProgress") || "In Progress"}</span>
           </span>
         );
-      case "ASSIGNED":
+      case "ASSIGNED": {
+        const target = record || selectedComplaint;
+        const hasAssignedPerson = Boolean(
+          target?.assigned_personnel?.name ||
+          (target?.assigned_officer?.name &&
+            target.assigned_officer.name !== "Zonal Field Engineer" &&
+            target.assigned_officer.name !== "Pune Municipal Officer")
+        );
+
+        if (hasAssignedPerson) {
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 px-3 py-1.5 text-xs font-black">
+              <UserCheck className="h-3.5 w-3.5 text-indigo-700" />
+              <span>{t("trackPage.statusAssigned") || "Assigned to Crew"}</span>
+            </span>
+          );
+        }
+
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 px-3 py-1.5 text-xs font-black">
-            <UserCheck className="h-3.5 w-3.5 text-indigo-700" />
-            <span>{t("trackPage.statusAssigned") || "Assigned to Crew"}</span>
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 text-[#123B5D] border border-blue-200 px-3 py-1.5 text-xs font-black">
+            <Building2 className="h-3.5 w-3.5 text-[#1F5E91]" />
+            <span>{t("trackPage.statusAssignedDept") || "Assigned to Department"}</span>
           </span>
         );
+      }
       case "NEEDS_CLARIFICATION":
         return (
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 text-xs font-black animate-pulse">
@@ -1360,7 +1383,7 @@ export default function TrackPage() {
                   <div className="text-[10px] font-bold text-[#667085] uppercase tracking-wider mb-1">
                     {t("trackPage.statusLabel") || "Current Civic Status"}
                   </div>
-                  {getStatusBadge(selectedComplaint.status)}
+                  {getStatusBadge(selectedComplaint.status, selectedComplaint)}
                 </div>
               </div>
 
@@ -1413,20 +1436,31 @@ export default function TrackPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block mb-1">
                     Assigned Officer / Engineer
                   </span>
-                  <div className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
-                    <UserCheck className="h-4 w-4 text-indigo-600 shrink-0" />
-                    <span className="truncate">
-                      {selectedComplaint.assigned_officer?.name || "Zonal Field Engineer"}
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-[#667085] block mt-0.5">
-                    {selectedComplaint.assigned_officer?.designation || "Municipal Field Officer"}
-                    {selectedComplaint.assigned_officer?.employee_id && (
-                      <span className="font-mono text-[10px] ml-1">
-                        ({selectedComplaint.assigned_officer.employee_id})
+                  {selectedComplaint.assigned_personnel?.name || (selectedComplaint.assigned_officer?.name && selectedComplaint.assigned_officer.name !== "Zonal Field Engineer" && selectedComplaint.assigned_officer.name !== "Pune Municipal Officer") ? (
+                    <>
+                      <div className="font-bold text-[#123B5D] flex items-center gap-1.5 text-sm">
+                        <UserCheck className="h-4 w-4 text-indigo-600 shrink-0" />
+                        <span className="truncate">
+                          {selectedComplaint.assigned_personnel?.name || selectedComplaint.assigned_officer?.name}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#667085] block mt-0.5">
+                        {selectedComplaint.assigned_personnel?.designation || selectedComplaint.assigned_officer?.designation || "Municipal Field Officer"}
                       </span>
-                    )}
-                  </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-bold text-amber-800 flex items-center gap-1.5 text-sm">
+                        <Clock className="h-4 w-4 text-amber-600 shrink-0" />
+                        <span className="truncate">
+                          Pending Assignment
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-amber-700 block mt-0.5">
+                        Department will dispatch officer
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {/* 5. Submitted Date */}
@@ -1457,6 +1491,93 @@ export default function TrackPage() {
                   </span>
                 </div>
               </div>
+
+              {/* ─── NEW SECTION: Assigned Municipal Personnel ─── */}
+              <section aria-labelledby="assigned-personnel-heading" className="mb-6">
+                {selectedComplaint.assigned_personnel ? (
+                  <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/70 to-indigo-50/50 p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-3 border-b border-blue-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-5 w-5 text-[#1F5E91]" />
+                        <h3 id="assigned-personnel-heading" className="text-sm font-extrabold uppercase tracking-wider text-[#123B5D]">
+                          Assigned Municipal Personnel
+                        </h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-3 py-1 text-xs font-bold">
+                        <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+                        Status: {selectedComplaint.assigned_personnel.work_status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block">
+                          Assigned Officer
+                        </span>
+                        <div className="font-extrabold text-sm text-[#123B5D] mt-0.5">
+                          {selectedComplaint.assigned_personnel.name}
+                        </div>
+                        <span className="text-[11px] text-[#1F5E91] font-semibold block">
+                          {selectedComplaint.assigned_personnel.designation}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block">
+                          Concerned Department
+                        </span>
+                        <div className="font-bold text-sm text-[#123B5D] mt-0.5">
+                          {selectedComplaint.assigned_personnel.department}
+                        </div>
+                        <span className="text-[11px] text-[#667085] block">
+                          Pune Municipal Corporation
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block">
+                          Official Contact Number
+                        </span>
+                        <div className="font-mono font-bold text-sm text-[#123B5D] flex items-center gap-1.5 mt-0.5">
+                          <Phone className="h-3.5 w-3.5 text-[#F39A32]" />
+                          <span>{selectedComplaint.assigned_personnel.official_contact}</span>
+                        </div>
+                        <span className="text-[10px] text-[#667085] block">
+                          Official Municipal Helpline
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#667085] block">
+                          Assigned Date
+                        </span>
+                        <div className="font-bold text-xs text-[#123B5D] mt-0.5">
+                          {selectedComplaint.assigned_personnel.assigned_date
+                            ? formatDateIST(selectedComplaint.assigned_personnel.assigned_date)
+                            : "Recently Assigned"}
+                        </div>
+                        <span className="text-[10px] text-[#667085] block">
+                          Active Dispatch Sync
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex items-center gap-3.5 text-xs text-amber-900">
+                    <div className="h-9 w-9 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
+                      <Clock className="h-5 w-5 text-amber-700" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-amber-950 uppercase tracking-wide">
+                        Field Personnel Assignment Pending
+                      </div>
+                      <p className="text-amber-800 text-xs mt-0.5">
+                        Your complaint has been routed to the concerned department. Field personnel assignment is pending.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </section>
 
               {/* Geotagged Incident Location Map */}
               <div className="mb-6">
