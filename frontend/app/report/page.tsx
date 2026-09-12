@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -26,6 +26,7 @@ import { submitComplaint, analyzeTextLive, saveComplaintDraft } from "../../lib/
 import { useTranslation } from "../../context/LanguageContext";
 import { useAuth } from "../../hooks/useAuth";
 import LocationPicker from "../../components/location/LocationPicker";
+import { validateComplaintForm } from "../../lib/validation/mandatoryValidation";
 
 const DRAFT_LOCAL_STORAGE_KEY = "jansetu_report_draft";
 
@@ -43,6 +44,12 @@ function ReportFormContent() {
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
 
+  // Validation & Auto-Focus refs & state
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
   // AI & Submission state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiPreview, setAiPreview] = useState<any>(null);
@@ -51,6 +58,16 @@ function ReportFormContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedTracking, setCopiedTracking] = useState(false);
   const [draftRestoredBanner, setDraftRestoredBanner] = useState(false);
+
+  // Real-time authoritative semantic validation
+  const formValidation = validateComplaintForm({
+    rawText,
+    locationName,
+    category: aiPreview?.summary,
+    department: aiPreview?.department,
+  });
+  const descValidation = formValidation.validations.raw_text;
+  const locValidation = formValidation.validations.location;
 
   // Restore draft on mount if available
   useEffect(() => {
@@ -100,13 +117,24 @@ function ReportFormContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rawText.trim() || rawText.trim().length < 5) {
-      setErrorMessage(t("reportPage.errorMinLength") || "Please describe your civic complaint with at least 5 characters.");
-      return;
-    }
 
-    if (!locationName.trim()) {
-      setErrorMessage(t("reportPage.errorLocationRequired") || "Please provide or select a location in Pune for your grievance.");
+    // Strict Mandatory Validation Gate
+    if (!formValidation.canSubmit) {
+      setHasAttemptedSubmit(true);
+      const firstUnres = formValidation.firstUnresolved;
+      setFocusedField(firstUnres?.field || null);
+
+      if (firstUnres?.field === "raw_text") {
+        setErrorMessage(firstUnres.question || "Please provide a valid description for your grievance.");
+        descriptionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        descriptionRef.current?.focus();
+      } else if (firstUnres?.field === "location") {
+        setErrorMessage(firstUnres.question || "Please provide or select a location in Pune for your grievance.");
+        locationInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        locationInputRef.current?.focus();
+      } else {
+        setErrorMessage(firstUnres?.question || "Please complete all mandatory information before submitting.");
+      }
       return;
     }
 
@@ -346,18 +374,60 @@ function ReportFormContent() {
                 </button>
               </div>
               <textarea
+                ref={descriptionRef}
                 rows={4}
-                required
                 value={rawText}
-                onChange={(e) => setRawText(e.target.value)}
+                onChange={(e) => {
+                  setRawText(e.target.value);
+                  if (errorMessage) setErrorMessage(null);
+                }}
                 onBlur={() => {
                   if (rawText.length > 10 && !aiPreview) {
                     handlePreAnalyze();
                   }
                 }}
                 placeholder={t("reportPage.textareaPlaceholder") || "e.g. Water pipeline leak near Baner road causing road flooding..."}
-                className="w-full rounded-xl border border-[#E9E9E9] p-4 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91] bg-white leading-relaxed"
+                className={`w-full rounded-xl border p-4 text-xs sm:text-sm text-[#1F2933] placeholder-[#667085] bg-white leading-relaxed transition ${
+                  (hasAttemptedSubmit || rawText.length > 0) && descValidation.status !== "VALID"
+                    ? "border-rose-400 ring-2 ring-rose-200 focus:border-rose-500 focus:ring-rose-300"
+                    : "border-[#E9E9E9] focus:border-[#1F5E91] focus:outline-none focus:ring-1 focus:ring-[#1F5E91]"
+                }`}
               />
+
+              {/* Description Inline Clarification Banner */}
+              {(hasAttemptedSubmit || rawText.length > 0) && descValidation.status !== "VALID" && (
+                <div
+                  id="desc-clarification"
+                  role="alert"
+                  className={`mt-2 rounded-xl p-3 text-xs flex items-start gap-2.5 transition-all duration-200 border ${
+                    descValidation.status === "INVALID"
+                      ? "bg-rose-50 border-rose-200 text-rose-900"
+                      : descValidation.status === "INSUFFICIENT"
+                      ? "bg-amber-50 border-amber-200 text-amber-900"
+                      : "bg-blue-50 border-blue-200 text-blue-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                    <span className="px-1.5 py-0.5 text-[10px] font-black rounded uppercase bg-rose-600 text-white tracking-wider">
+                      {descValidation.requirement}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded uppercase ${
+                        descValidation.status === "INVALID"
+                          ? "bg-rose-200 text-rose-800"
+                          : descValidation.status === "INSUFFICIENT"
+                          ? "bg-amber-200 text-amber-800"
+                          : "bg-slate-200 text-slate-800"
+                      }`}
+                    >
+                      {descValidation.status}
+                    </span>
+                  </div>
+                  <p className="font-medium leading-relaxed flex-1">
+                    {descValidation.question}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Instant AI Preview Card */}
@@ -407,17 +477,58 @@ function ReportFormContent() {
             )}
 
             {/* Location Picker with GPS & Map */}
-            <LocationPicker
-              value={locationName}
-              latitude={latitude}
-              longitude={longitude}
-              required={true}
-              onChange={(address, lat, lng) => {
-                setLocationName(address);
-                setLatitude(lat);
-                setLongitude(lng);
-              }}
-            />
+            <div>
+              <LocationPicker
+                id="location-input"
+                inputRef={locationInputRef}
+                hasError={(hasAttemptedSubmit || locationName.length > 0) && locValidation.status !== "VALID"}
+                value={locationName}
+                latitude={latitude}
+                longitude={longitude}
+                required={true}
+                onChange={(address, lat, lng) => {
+                  setLocationName(address);
+                  setLatitude(lat);
+                  setLongitude(lng);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+              />
+
+              {/* Location Inline Clarification Banner */}
+              {(hasAttemptedSubmit || locationName.length > 0) && locValidation.status !== "VALID" && (
+                <div
+                  id="location-clarification"
+                  role="alert"
+                  className={`mt-2.5 rounded-xl p-3 text-xs flex items-start gap-2.5 transition-all duration-200 border ${
+                    locValidation.status === "INVALID"
+                      ? "bg-rose-50 border-rose-200 text-rose-900"
+                      : locValidation.status === "INSUFFICIENT"
+                      ? "bg-amber-50 border-amber-200 text-amber-900"
+                      : "bg-blue-50 border-blue-200 text-blue-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                    <span className="px-1.5 py-0.5 text-[10px] font-black rounded uppercase bg-rose-600 text-white tracking-wider">
+                      {locValidation.requirement}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded uppercase ${
+                        locValidation.status === "INVALID"
+                          ? "bg-rose-200 text-rose-800"
+                          : locValidation.status === "INSUFFICIENT"
+                          ? "bg-amber-200 text-amber-800"
+                          : "bg-slate-200 text-slate-800"
+                      }`}
+                    >
+                      {locValidation.status}
+                    </span>
+                  </div>
+                  <p className="font-medium leading-relaxed flex-1">
+                    {locValidation.question}
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Submit Bar */}
             <div className="pt-4 border-t border-[#E9E9E9] flex items-center justify-between">
@@ -437,7 +548,7 @@ function ReportFormContent() {
                 )}
                 <button
                   type="submit"
-                  disabled={isSubmitting || !rawText.trim() || !locationName.trim()}
+                  disabled={isSubmitting}
                   className="inline-flex items-center gap-2 rounded-xl bg-[#1F5E91] hover:bg-[#123B5D] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow hover:shadow-md disabled:opacity-50 transition active:scale-95 cursor-pointer"
                 >
                   <Send className="h-4 w-4" />
